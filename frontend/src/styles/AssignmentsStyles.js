@@ -110,3 +110,83 @@ export const AssignmentDoneMessage = styled.p`
   color: #28a745;
   font-weight: bold;
 `;
+
+
+export const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+`;
+
+export const TableHead = styled.thead`
+  background-color: #007bff;
+`;
+
+export const TableRow = styled.tr`
+  &:nth-child(even) {
+    background-color: #f8f9fa;
+  }
+
+  &:hover {
+    background-color: #e9f5ff;
+  }
+`;
+
+export const TableCell = styled.td`
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+  font-size: 15px;
+  color: #333;
+
+  ${TableHead} & {
+    color: white;
+    font-weight: bold;
+    border-bottom: none;
+  }
+`;
+
+export const TableBody = styled.tbody``;
+
+export const StyledTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+
+  thead {
+    background-color: #007bff;
+    color: white;
+  }
+
+  tbody tr:hover {
+    background-color: #f0f8ff;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+  }
+
+  td, th {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+`;
+
+export const StyledTd = styled.td`
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+`;
+
+export const StyledTh = styled.th`
+  background-color: #007bff;
+  padding: 12px 16px;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+`;
+
+

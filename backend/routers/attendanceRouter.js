@@ -1,10 +1,17 @@
 import express from "express";
-import { getAllAttendance, markAttendance } from "../controllers/attendanceController.js";
+import {
+  markAttendance,
+  getAttendanceByClassAndDate,getAttendanceByChild 
+} from "../controllers/attendanceController.js";
 
 const router = express.Router();
 
-router.get('/getall', getAllAttendance);
-router.post('/', markAttendance);
+// POST: điểm danh hoặc cập nhật điểm danh
+router.post("/", markAttendance);
 
+// GET: lấy danh sách điểm danh theo lớp và ngày
+router.get("/", getAttendanceByClassAndDate);
+
+router.get("/child/:childId", getAttendanceByChild);
 
 export default router;

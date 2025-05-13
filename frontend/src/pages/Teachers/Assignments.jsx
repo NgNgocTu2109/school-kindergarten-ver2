@@ -1,10 +1,21 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import axios from 'axios';
-import { AssignmentsContainer, Content, AssignmentsContent, AssignmentsHeader, AssignmentList, AssignmentItem, AddAssignmentForm, 
-  AddAssignmentInput, AddAssignmentTextArea, AddAssignmentButton } from '../../styles/AssignmentsStyles'; 
+import {
+  AssignmentsContainer,
+  Content,
+  AssignmentsContent,
+  AssignmentsHeader,
+  AddAssignmentForm,
+  AddAssignmentInput,
+  AddAssignmentTextArea,
+  AddAssignmentButton,
+  StyledTable,
+  StyledTh,
+  StyledTd,
+} from '../../styles/AssignmentsStyles';
 
-const AssignmentSection= () => {
+const AssignmentSection = () => {
   const [newAssignment, setNewAssignment] = useState({ title: '', description: '', grade: '', deadline: '' });
   const [assignments, setAssignments] = useState([]);
 
@@ -23,9 +34,13 @@ const AssignmentSection= () => {
 
   const handleAddAssignment = async (e) => {
     e.preventDefault();
-    if (newAssignment.title.trim() !== '' && newAssignment.description.trim() !== '' && newAssignment.grade.trim() !== '' && newAssignment.deadline.trim() !== '') {
+    if (newAssignment.title && newAssignment.description && newAssignment.grade && newAssignment.deadline) {
       try {
-        const response = await axios.post('http://localhost:4000/api/v1/assignments', newAssignment);
+        const formattedDeadline = new Date(newAssignment.deadline).toISOString();
+        const response = await axios.post('http://localhost:4000/api/v1/assignments', {
+          ...newAssignment,
+          deadline: formattedDeadline,
+        });
         setAssignments([...assignments, response.data.assignment]);
         setNewAssignment({ title: '', description: '', grade: '', deadline: '' });
       } catch (error) {
@@ -34,51 +49,64 @@ const AssignmentSection= () => {
     }
   };
 
-    return (
-      <AssignmentsContainer>
-        <Sidebar />
-        <Content>
-          <AssignmentsContent>
-            <AssignmentsHeader>Assignment</AssignmentsHeader>
-            <AddAssignmentForm onSubmit={handleAddAssignment}>
-              <AddAssignmentInput 
+  return (
+    <AssignmentsContainer>
+      <Sidebar />
+      <Content>
+        <AssignmentsContent>
+          <AssignmentsHeader>Bài Tập</AssignmentsHeader>
+          <AddAssignmentForm onSubmit={handleAddAssignment}>
+            <AddAssignmentInput
               type='text'
-              placeholder='Enter Assignment Title'
+              placeholder='Nhập tiêu đề bài tập'
               value={newAssignment.title}
               onChange={(e) => setNewAssignment({ ...newAssignment, title: e.target.value })}
-              />
+            />
+            <AddAssignmentTextArea
+              placeholder='Nhập mô tả bài tập'
+              value={newAssignment.description}
+              onChange={(e) => setNewAssignment({ ...newAssignment, description: e.target.value })}
+            />
+            <AddAssignmentInput
+              type='text'
+              placeholder='Nhập khối lớp'
+              value={newAssignment.grade}
+              onChange={(e) => setNewAssignment({ ...newAssignment, grade: e.target.value })}
+            />
+            <AddAssignmentInput
+              type='date'
+              value={newAssignment.deadline}
+              onChange={(e) => setNewAssignment({ ...newAssignment, deadline: e.target.value })}
+            />
+            <AddAssignmentButton type='submit'>Thêm Bài Tập</AddAssignmentButton>
+          </AddAssignmentForm>
 
-              <AddAssignmentTextArea 
-                placeholder='Enter Assignment Description'
-                value={newAssignment.description}
-                onChange={(e) => setNewAssignment({ ...newAssignment, description: e.target.value })}
-              />
-              <AddAssignmentInput 
-                type='text'
-                placeholder='Enter Assignment Due Date'
-                value={newAssignment.grade}
-                onChange={(e) => setNewAssignment({ ...newAssignment, grade: e.target.value })}
-              />
-              <AddAssignmentInput 
-                type='text'
-                placeholder='Enter assignment deadline'
-                value={newAssignment.deadline}
-                onChange={(e) => setNewAssignment({ ...newAssignment, deadline: e.target.value })}
-              />
-              <AddAssignmentButton type='submit'>Add Assignment</AddAssignmentButton>
-            </AddAssignmentForm>
-            <AssignmentList>
-            {assignments.map((assignment) => (
-              <AssignmentItem key={assignment.id}>
-                <strong>{assignment.title}: </strong>
-                {assignment.description}, {assignment.grade}, {assignment.deadline}
-              </AssignmentItem>
-            ))}
-            </AssignmentList>
-          </AssignmentsContent>
-        </Content>
-      </AssignmentsContainer>
-    )
+          <StyledTable>
+            <thead>
+              <tr>
+                <StyledTh>STT</StyledTh>
+                <StyledTh>Tiêu đề</StyledTh>
+                <StyledTh>Mô tả</StyledTh>
+                <StyledTh>Lớp</StyledTh>
+                <StyledTh>Hạn chót</StyledTh>
+              </tr>
+            </thead>
+            <tbody>
+              {assignments.map((assignment, index) => (
+                <tr key={assignment._id}>
+                  <StyledTd>{index + 1}</StyledTd>
+                  <StyledTd>{assignment.title}</StyledTd>
+                  <StyledTd>{assignment.description}</StyledTd>
+                  <StyledTd>{assignment.grade}</StyledTd>
+                  <StyledTd>{new Date(assignment.deadline).toLocaleDateString()}</StyledTd>
+                </tr>
+              ))}
+            </tbody>
+          </StyledTable>
+        </AssignmentsContent>
+      </Content>
+    </AssignmentsContainer>
+  );
 };
 
-export default AssignmentSection
+export default AssignmentSection;

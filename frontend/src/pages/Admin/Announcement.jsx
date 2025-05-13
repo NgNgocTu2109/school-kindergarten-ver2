@@ -1,35 +1,34 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from './Sidebar';
 import axios from 'axios';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import {
-    AnnouncementContainer,
-    Content,
-    Title,
-    AnnouncementForm,
-    FormGroup,
-    Label,
-    TextArea,
-    Button,
-    AnnouncementList,
-    AnnouncementItem,
-    AnnouncementContent,
-  } from '../../styles/AnnouncementStyles';
+  AnnouncementContainer,
+  Content,
+  Title,
+  AnnouncementForm,
+  FormGroup,
+  Label,
+  TextArea,
+  Button,
+  StyledTable,
+} from '../../styles/AnnouncementStyles';
 
 const Announcement = () => {
-    // State for managing announcement
   const [announcement, setAnnouncement] = useState('');
   const [announcements, setAnnouncements] = useState([]);
 
-  // Function to fetch announcements
   const fetchAnnouncements = async () => {
     try {
       const response = await axios.get('http://localhost:4000/api/v1/announcements/getall');
       setAnnouncements(response.data.announcements);
     } catch (error) {
       console.error('Error fetching announcements:', error);
+      toast.error('Lỗi khi tải thông báo');
     }
   };
-  
 
   useEffect(() => {
     fetchAnnouncements();
@@ -39,53 +38,81 @@ const Announcement = () => {
     e.preventDefault();
     try {
       const response = await axios.post('http://localhost:4000/api/v1/announcements', {
-        announcement: announcement, // Ensure that the key matches the backend model
+        announcement: announcement,
       });
-      console.log('Announcement sent:', response.data);
-      // Display success toast message
-      toast.success('Announcement sent successfully');
-      // Clear the form
+      toast.success('Gửi thông báo thành công');
       setAnnouncement('');
-      // Fetch announcements again to update the list
       fetchAnnouncements();
     } catch (error) {
       console.error('Error sending announcement:', error);
-      // Display error toast message
-      toast.error('Error sending announcement');
+      toast.error('Gửi thông báo thất bại');
     }
   };
 
-    return (
-        <AnnouncementContainer>
-            <Sidebar />
-            <Content>
-                <Title>Announcement</Title>
-                <AnnouncementForm onSubmit={handleSubmit}>
-                    <FormGroup>
-                        <Label htmlFor="announcement">Announcement : </Label>
-                        <TextArea 
-                            id="announcement"
-                            value={announcement}
-                            onChange={(e) => setAnnouncement(e.target.value)}
-                            required
-                            rows={4}
-                            cols={50}
-                        />
-                    </FormGroup>
-                    <Button type="submit">Send Announcement</Button>
-                </AnnouncementForm>
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Bạn có chắc muốn xóa thông báo này?");
+    if (!confirmDelete) return;
 
-                <h2>Announcemnt</h2>
-                <AnnouncementList>
-                    {announcements.map((announcement) => (
-            <AnnouncementItem key={announcement._id}>
-              <AnnouncementContent>{announcement.announcement}</AnnouncementContent>
-            </AnnouncementItem>
-          ))}
-                </AnnouncementList>
-            </Content>
-        </AnnouncementContainer>
-    )
+    try {
+      await axios.delete(`http://localhost:4000/api/v1/announcements/${id}`);
+      toast.success("Xóa thông báo thành công");
+      setAnnouncements(prev => prev.filter(item => item._id !== id));
+    } catch (error) {
+      console.error("Lỗi khi xóa thông báo:", error);
+      toast.error("Xóa thông báo thất bại");
+    }
+  };
+
+  return (
+    <AnnouncementContainer>
+      <Sidebar />
+      <Content>
+        <Title>Thông báo</Title>
+
+        <AnnouncementForm onSubmit={handleSubmit}>
+          <FormGroup>
+            <Label htmlFor="announcement">Thông báo:</Label>
+            <TextArea
+              id="announcement"
+              value={announcement}
+              onChange={(e) => setAnnouncement(e.target.value)}
+              required
+              rows={4}
+              cols={50}
+            />
+          </FormGroup>
+          <Button type="submit">Gửi thông báo</Button>
+        </AnnouncementForm>
+
+        <h2>Danh sách thông báo</h2>
+        <StyledTable>
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Nội dung</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {announcements.map((announcement, index) => (
+              <tr key={announcement._id}>
+                <td>{index + 1}</td>
+                <td>{announcement.announcement}</td>
+                <td>
+                  <Button
+                    style={{ backgroundColor: "red" }}
+                    onClick={() => handleDelete(announcement._id)}
+                  >
+                    Xóa
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </StyledTable>
+      </Content>
+    </AnnouncementContainer>
+  );
 };
 
-export default Announcement
+export default Announcement;

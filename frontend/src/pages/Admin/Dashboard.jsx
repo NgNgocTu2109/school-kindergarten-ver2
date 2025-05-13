@@ -1,6 +1,5 @@
 import React, {useState, useEffect} from "react";
 import Sidebar from './Sidebar';
-import EventCalendaar from './EventCalender';
 import Announcement from './Announcement';
 import Performance from './Performance';
 import axios from 'axios';

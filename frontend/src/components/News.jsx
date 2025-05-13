@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Navbar,
@@ -24,6 +25,22 @@ import bg1 from "../assets/bg1.png";
 
 const News = () => {
   const navigate = useNavigate();
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    axios.get('/api/v1/event/all')
+      .then((res) => {
+        if (res.data.success) {
+          setEvents(res.data.events); // ✅ chỉ lấy mảng events
+        } else {
+          setEvents([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Lỗi khi lấy sự kiện:", err);
+        setEvents([]);
+      });
+  }, []);
 
   const handleLoginClick = () => {
     navigate('/choose-user');
@@ -50,31 +67,25 @@ const News = () => {
         <NewsWrapper>
           <NewsHeading>Bản Tin Nhà Trường</NewsHeading>
 
-          <NewsItem>
-            <NewsTitle>📅 Hoạt động cuối tuần</NewsTitle>
-            <NewsContent>
-              Nhà trường tổ chức chương trình “Ngày hội vui chơi” cho các bé vào thứ Bảy tuần này. Mời phụ huynh cùng tham gia!
-            </NewsContent>
-          </NewsItem>
-
-          <Divider />
-
-          <NewsItem>
-            <NewsTitle>📚 Thư viện mới khai trương</NewsTitle>
-            <NewsContent>
-              Chúng tôi vừa cập nhật hơn 500 đầu sách mới tại thư viện mầm non, giúp trẻ tiếp cận tri thức sớm và hiệu quả.
-            </NewsContent>
-          </NewsItem>
-
-          <Divider />
-
-          <NewsItem>
-            <NewsTitle>👩‍🏫 Hội thảo “Cha mẹ đồng hành cùng con”</NewsTitle>
-            <NewsContent>
-              Sự kiện tổ chức vào 9h sáng Chủ nhật tuần này tại hội trường chính – bố mẹ nhớ sắp xếp thời gian tham dự nhé!
-            </NewsContent>
-          </NewsItem>
-
+          {Array.isArray(events) && events.map((event, index) => (
+            <React.Fragment key={event._id}>
+              <NewsItem>
+                <NewsTitle>{event.title}</NewsTitle>
+                <NewsContent>
+                  <div><strong>📅 {new Date(event.date).toLocaleDateString()}</strong></div>
+                  <div>{event.description}</div>
+                  {event.image && (
+              <img
+              src={`http://localhost:4000/uploads/${event.image}`} // ✅ sửa tại đây
+              alt="Sự kiện"
+              style={{ maxWidth: '100%', marginTop: '10px', borderRadius: '8px' }}
+           />
+          )}
+                </NewsContent>
+              </NewsItem>
+              {index !== events.length - 1 && <Divider />}
+            </React.Fragment>
+          ))}
         </NewsWrapper>
       </NewsContainer>
     </>

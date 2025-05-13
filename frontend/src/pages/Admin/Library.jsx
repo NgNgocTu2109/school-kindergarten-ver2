@@ -69,13 +69,13 @@ const Library = () => {
                     e.target.reset();
                   }}
                 >
-                    <h2>Add new book</h2>
+                    <h2>Mượn sách</h2>
                     <FormGroup>
-                        <Label htmlFor='title'>Title</Label>
+                        <Label htmlFor='title'>Tên sách</Label>
                         <Input type='text' id='title'/>
                     </FormGroup>
                     <FormGroup>
-                        <Label htmlFor='author'>Author</Label>
+                        <Label htmlFor='author'>Tác giả</Label>
                         <Input type='text' id='author'/>
                     </FormGroup>
                     <Button type='submit'>Add Book</Button>
@@ -87,8 +87,8 @@ const Library = () => {
             <BookItem key={book._id}>
               <BookTitle>{book.bookname}</BookTitle>
               <BookAuthor>by {book.author}</BookAuthor>
-              <ActionButton onClick={() => handleBookPick(book._id, 'student123')}>Pick</ActionButton>
-              <ActionButton onClick={() => handleBookReturn(book._id, 'student123')}>Return</ActionButton>
+              <ActionButton onClick={() => handleBookPick(book._id, 'student123')}>Mượn</ActionButton>
+              <ActionButton onClick={() => handleBookReturn(book._id, 'student123')}>Trả</ActionButton>
             </BookItem>
           ))}
                 </BookList>

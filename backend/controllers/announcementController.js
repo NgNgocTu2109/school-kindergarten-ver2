@@ -29,3 +29,24 @@ export const getAllAnnouncements = async (req, res, next) => {
   next(err);
 }
 };
+
+export const deleteAnnouncement = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const deleted = await Announcement.findByIdAndDelete(id);
+    
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy thông báo để xoá",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Xoá thông báo thành công",
+    });
+  } catch (err) {
+    next(err);
+  }
+};

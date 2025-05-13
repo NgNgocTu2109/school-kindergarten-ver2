@@ -12,7 +12,7 @@ const CheckPerformanceSection= () => {
     totalStudents: 100,
 };
 
-const IndividualPerformanceData = [
+const individualPerformanceData = [
     { id: 1, name: 'John Doe', score: 90 },
     { id: 2, name: 'Jahn Doe', score: 86 },
     { id: 3, name: 'James Doe', score: 93 },

@@ -1,138 +1,138 @@
-import React, {useState, useEffect} from "react";
-import styled from 'styled-components';
-import { Link } from 'react-router-dom'; 
-import { BsGraphUp, BsPeople, BsPerson, BsFileText, BsBook, BsGraphDown, BsCalendar, BsGear, BsChatDots, BsCalendarEvent, BsQuestionSquare } from 'react-icons/bs';
+import React from "react";
+import styled from "styled-components";
+import { Link } from "react-router-dom";
+import {
+  BsGraphUp, BsFileText, BsGraphDown,
+  BsCalendar, BsBook, BsChatDots,
+  BsGear, BsJournalText, BsEggFried,
+  BsCartCheck, BsCashStack, BsCalendarEvent
+} from "react-icons/bs";
 
-
+// Sidebar container
 const SidebarContainer = styled.div`
   position: fixed;
   top: 0;
   left: 0;
-  width: ${({ isOpen }) => (isOpen ? '250px' : '80px')};
   width: 250px;
   height: 100%;
-  background-color: #2c3e50; /* Dark blue background */
+  background-color: #2c3e50;
   color: white;
-  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-y: auto;
   padding-top: 60px;
-  transition: width 0.3s ease; /* Smooth width transition */
-  z-index: 100; /* Ensure sidebar stays above content */
+  z-index: 100;
+
+  @media (max-width: 768px) {
+    width: 80px;
+    padding-top: 20px;
+  }
 `;
 
+// Header
 const SidebarHeader = styled.div`
   padding: 20px;
   font-size: 24px;
   font-weight: bold;
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    padding: 10px;
+  }
 `;
 
-const SidebarNav = styled.ul`
-  list-style: none;
-  padding: 0;
-`;
-
-const SidebarNavItem = styled.li`
+// Link item (click toàn bộ dòng)
+const NavItem = styled(Link)`
   display: flex;
   align-items: center;
   padding: 12px 20px;
   font-size: 18px;
-  border-bottom: 1px solid #34495e; /* Darker border */
+  color: white;
+  text-decoration: none;
+  border-bottom: 1px solid #34495e;
   transition: background-color 0.3s ease;
+
   &:hover {
-    background-color: #34495e; /* Darker background on hover */
+    background-color: #34495e;
+  }
+
+  @media (max-width: 768px) {
+    justify-content: center;
+    padding: 12px;
   }
 `;
 
-const StyledLink = styled(Link)`
-  text-decoration: none;
-  color: white;
-  margin-left: 10px;
-`;
-
+// Icon
 const SidebarIcon = styled.div`
   margin-right: 10px;
+  font-size: 18px;
+
+  @media (max-width: 768px) {
+    margin-right: 0;
+  }
 `;
 
-const Logo = styled.img`
-  width: 50px;
-  height: auto;
-`;
+// Text (ẩn khi mobile)
+const SidebarText = styled.span`
+  margin-left: 10px;
 
-const ToggleButton = styled.div`
-  position: absolute;
-  top: 20px;
-  right: 0;
-  width: 30px;
-  height: 30px;
-  background-color: #34495e; /* Darker background */
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const ToggleIcon = styled.span`
-  color: white;
-  font-size: 20px;
-  transform: ${({ isOpen }) => (isOpen ? 'rotate(180deg)' : 'rotate(0deg)')};
-  transition: transform 0.3s ease;
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const Sidebar = () => {
-    const [isOpen, setIsOpen] = useState(true);
+  return (
+    <SidebarContainer>
+      <SidebarHeader>Students</SidebarHeader>
 
-    const toggleSidebar = () => {
-        setIsOpen(!isOpen);
-      };
-    return (
-        <SidebarContainer style ={{width: isOpen ? '250px' : '80px'}}>
-            <SidebarHeader>
-                <Logo src = "../../asset/bg1.png" alt='logo' />
-            </SidebarHeader>
-            <SidebarNav>
-                <SidebarNavItem>
-                    <SidebarIcon> <BsGraphUp /></SidebarIcon>
-                    <StyledLink to="/student/dashboard">Dashboard</StyledLink>
-                </SidebarNavItem>              
-                <SidebarNavItem>
-                    <SidebarIcon> <BsFileText /></SidebarIcon>
-                    <StyledLink to="/student/assignments">Assignments</StyledLink>
-                </SidebarNavItem>
-                <SidebarNavItem>
-                    <SidebarIcon> <BsBook /></SidebarIcon>
-                    <StyledLink to="/student/exams">Exams</StyledLink>
-                </SidebarNavItem>
-                <SidebarNavItem>
-                    <SidebarIcon> <BsGraphDown /></SidebarIcon>
-                    <StyledLink to="/student/performance">Performance</StyledLink>
-                </SidebarNavItem>
-                <SidebarNavItem>
-                    <SidebarIcon> <BsCalendar /></SidebarIcon>
-                    <StyledLink to="/student/attendance">Attendance</StyledLink>
-                </SidebarNavItem>
-                <SidebarNavItem>
-                    <SidebarIcon> <BsBook /></SidebarIcon>
-                    <StyledLink to="/student/library">Library</StyledLink>
-                </SidebarNavItem>
-                <SidebarNavItem>
-                    <SidebarIcon> <BsChatDots /></SidebarIcon>
-                    <StyledLink to="/student/communication">Announcement</StyledLink>
-                </SidebarNavItem>     
-                <SidebarNavItem>
-                    <SidebarIcon> <BsGear /></SidebarIcon>
-                    <StyledLink to="/student/settings">Profile</StyledLink>
-                </SidebarNavItem>
-                <SidebarNavItem>
-                <SidebarIcon> <BsCalendarEvent /></SidebarIcon>
-                    <StyledLink to="/student/extracurricular">Extracurricularr</StyledLink>
-                </SidebarNavItem>
-                <ToggleButton onClick={toggleSidebar}>
-                    <ToggleIcon isOpen={isOpen}>▲</ToggleIcon>
-                </ToggleButton>
-            </SidebarNav>
-        </SidebarContainer>
-    )
+      <nav>
+        <NavItem to="/student/dashboard">
+          <SidebarIcon><BsGraphUp /></SidebarIcon>
+          <SidebarText>Dashboard</SidebarText>
+        </NavItem>
+        <NavItem to="/student/assignments">
+          <SidebarIcon><BsFileText /></SidebarIcon>
+          <SidebarText>Bài tập</SidebarText>
+        </NavItem>
+        <NavItem to="/student/attendance">
+          <SidebarIcon><BsJournalText /></SidebarIcon>
+          <SidebarText>Nhật ký bé</SidebarText>
+        </NavItem>
+        <NavItem to="/student/services">
+          <SidebarIcon><BsCartCheck /></SidebarIcon>
+          <SidebarText>Đăng ký dịch vụ</SidebarText>
+        </NavItem>
+        <NavItem to="/student/performance">
+          <SidebarIcon><BsGraphDown /></SidebarIcon>
+          <SidebarText>Kết quả học tập</SidebarText>
+        </NavItem>
+        <NavItem to="/student/messages">
+          <SidebarIcon><BsChatDots /></SidebarIcon>
+          <SidebarText>Trao đổi với giáo viên</SidebarText>
+        </NavItem>
+        <NavItem to="/student/events">
+          <SidebarIcon><BsCalendarEvent /></SidebarIcon>
+          <SidebarText>Sự kiện & Hoạt động</SidebarText>
+        </NavItem>
+        <NavItem to="/student/library">
+          <SidebarIcon><BsBook /></SidebarIcon>
+          <SidebarText>Thư viện</SidebarText>
+        </NavItem>
+        <NavItem to="/student/communication">
+          <SidebarIcon><BsChatDots /></SidebarIcon>
+          <SidebarText>Thông báo</SidebarText>
+        </NavItem>
+        <NavItem to="/student/settings">
+          <SidebarIcon><BsGear /></SidebarIcon>
+          <SidebarText>Thông tin</SidebarText>
+        </NavItem>
+        <NavItem to="/student/bills">
+          <SidebarIcon><BsCashStack /></SidebarIcon>
+          <SidebarText>Hóa đơn</SidebarText>
+        </NavItem>
+      </nav>
+    </SidebarContainer>
+  );
 };
 
-export default Sidebar
+export default Sidebar;

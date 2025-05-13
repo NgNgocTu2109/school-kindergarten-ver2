@@ -1,11 +1,19 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from './Sidebar';
 import axios from 'axios';
-import { ClassContainer, SidebarContainer, Content, ClassHeader, ClassList, ClassItem } 
-from '../../styles/ClassesStyles'; 
+import {
+  ClassContainer,
+  SidebarContainer,
+  Content,
+  ClassHeader,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody
+} from '../../styles/ClassesStyles';
 
-
-const ClassSection= () => {
+const ClassSection = () => {
   const [classes, setClasses] = useState([]);
 
   useEffect(() => {
@@ -25,23 +33,32 @@ const ClassSection= () => {
     }
   };
 
-    return (
-      <ClassContainer>
-        <SidebarContainer>
-          <Sidebar />
-        </SidebarContainer>
-        <Content>
-          <ClassHeader>Classes</ClassHeader>
-          <ClassList>
-          {classes.map((classItem, index) => (
-            <ClassItem key={index}>
-              <h3>{classItem.grade}</h3>
-            </ClassItem>
-          ))}
-          </ClassList>
-        </Content>
-      </ClassContainer>
-    )
+  return (
+    <ClassContainer>
+      <SidebarContainer>
+        <Sidebar />
+      </SidebarContainer>
+      <Content>
+        <ClassHeader>Classes</ClassHeader>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>STT</TableCell>
+              <TableCell>Lớp  </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {classes.map((classItem, index) => (
+              <TableRow key={index}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell>{classItem.grade}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Content>
+    </ClassContainer>
+  );
 };
 
-export default ClassSection
+export default ClassSection;

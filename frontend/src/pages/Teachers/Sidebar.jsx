@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react";
 import styled from 'styled-components';
 import { Link } from 'react-router-dom'; 
-import { BsGraphUp, BsPeople, BsPerson, BsFileText, BsBook, BsGraphDown, BsCalendar, BsGear, BsChatDots, BsCalendarEvent, BsQuestionSquare } from 'react-icons/bs';
+import { BsGraphUp, BsPeople, BsPerson, BsFileText, BsBook, BsGraphDown, BsCalendar, BsGear, BsChatDots, BsQuestionSquare, BsClipboardCheck, BsEggFried, BsCalendarEvent } from 'react-icons/bs';
 
 
 const SidebarContainer = styled.div`
@@ -88,7 +88,7 @@ const Sidebar = () => {
     return (
         <SidebarContainer style ={{width: isOpen ? '250px' : '80px'}}>
             <SidebarHeader>
-                <Logo src = "../../asset/bg1.png" alt='logo' />
+                Teacher
             </SidebarHeader>
             <SidebarNav>
                 <SidebarNavItem>
@@ -97,43 +97,39 @@ const Sidebar = () => {
                 </SidebarNavItem>
                 <SidebarNavItem>
                     <SidebarIcon> <BsPeople /></SidebarIcon>
-                    <StyledLink to="/teacher/classes">Classes</StyledLink>
+                    <StyledLink to="/teacher/classes">Lớp học</StyledLink>
                 </SidebarNavItem>
                 <SidebarNavItem>
-                    <SidebarIcon> <BsPeople /></SidebarIcon>
-                    <StyledLink to="/teacher/students">Students</StyledLink>
-                </SidebarNavItem>
-                <SidebarNavItem>
-                    <SidebarIcon> <BsPerson /></SidebarIcon>
-                    <StyledLink to="/teacher/teachers">Teachers</StyledLink>
-                </SidebarNavItem>
+               <SidebarIcon><BsClipboardCheck /></SidebarIcon> {/* icon phù hợp cho điểm danh */}
+              <StyledLink to="/teacher/attendance">Điểm danh</StyledLink>
+              </SidebarNavItem>
+              <SidebarNavItem>
+              <SidebarIcon><BsEggFried /></SidebarIcon>
+              <StyledLink to="/teacher/menu">Thực đơn</StyledLink>
+              </SidebarNavItem>
                 <SidebarNavItem>
                     <SidebarIcon> <BsFileText /></SidebarIcon>
-                    <StyledLink to="/teacher/assignments">Assignments</StyledLink>
-                </SidebarNavItem>
-                <SidebarNavItem>
-                    <SidebarIcon> <BsBook /></SidebarIcon>
-                    <StyledLink to="/teacher/exams">Exams</StyledLink>
+                    <StyledLink to="/teacher/assignments">Bài tập</StyledLink>
                 </SidebarNavItem>
                 <SidebarNavItem>
                     <SidebarIcon> <BsGraphDown /></SidebarIcon>
-                    <StyledLink to="/teacher/performance">Performance</StyledLink>
-                </SidebarNavItem>
-                <SidebarNavItem>
-                    <SidebarIcon> <BsCalendar /></SidebarIcon>
-                    <StyledLink to="/teacher/attendance">Attendance</StyledLink>
+                    <StyledLink to="/teacher/performance">Kết quả học tập</StyledLink>
                 </SidebarNavItem>
                 <SidebarNavItem>
                     <SidebarIcon> <BsChatDots /></SidebarIcon>
-                    <StyledLink to="/teacher/communication">Announcement</StyledLink>
+                    <StyledLink to="/teacher/communication">Thông báo</StyledLink>
                 </SidebarNavItem>
                 <SidebarNavItem>
-                    <SidebarIcon> <BsCalendarEvent /></SidebarIcon>
-                    <StyledLink to="/teacher/events">Events and Calender</StyledLink>
+                <SidebarIcon> <BsChatDots /> </SidebarIcon>
+                <StyledLink to="/teacher/messages">Tin nhắn</StyledLink>
+                </SidebarNavItem>
+                <SidebarNavItem>
+                <SidebarIcon><BsCalendarEvent /></SidebarIcon>
+                <StyledLink to="/teacher/events">Sự kiện & Hoạt động</StyledLink>
                 </SidebarNavItem>
                 <SidebarNavItem>
                     <SidebarIcon> <BsGear /></SidebarIcon>
-                    <StyledLink to="/teacher/settings">Settings and Profile</StyledLink>
+                    <StyledLink to="/teacher/settings">Cài đặt và thông tin</StyledLink>
                 </SidebarNavItem>
                 <ToggleButton onClick={toggleSidebar}>
                     <ToggleIcon isOpen={isOpen}>▲</ToggleIcon>

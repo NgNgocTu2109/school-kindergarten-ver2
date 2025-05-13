@@ -138,3 +138,39 @@ export const Title = styled.h1`
   margin-bottom: 20px;
   text-align: center;
 `;
+
+export const StyledAnnouncementListWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  max-width: 600px;
+`;
+
+export const StyledTable = styled.table`
+  width: 100%;
+  max-width: 800px;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 16px;
+
+  th, td {
+    border: 1px solid #ccc;
+    padding: 12px 16px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+  }
+
+  tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+
+  tr:hover {
+    background-color: #e6f7ff;
+  }
+`;

@@ -1,75 +1,120 @@
-// TeachersStyles.js
 import styled from 'styled-components';
 
 export const TeachersContainer = styled.div`
   display: flex;
-  height: 100vh; /* Đảm bảo chiều cao full màn hình */
+  min-height: 100vh;
 `;
 
 export const Content = styled.div`
   flex: 1;
   padding: 20px;
   display: flex;
-  flex-direction: column;
-  align-items: center; /* Căn giữa nội dung */
+  justify-content: center;
+  align-items: flex-start;
 `;
 
 export const TeachersContent = styled.div`
   width: 100%;
-  max-width: 800px; /* Giới hạn chiều rộng */
-  padding: 20px;
+  max-width: 1000px;
+  padding: 30px;
   background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 `;
 
 export const TeachersHeader = styled.h2`
-  font-size: 24px;
-  margin-bottom: 20px;
-  text-align: center; /* Căn giữa tiêu đề */
+  font-size: 28px;
+  margin-bottom: 25px;
+  text-align: center;
 `;
 
-export const TeacherList = styled.ul`
-  list-style: none;
-  padding: 0;
-  width: 100%;
+export const TeacherList = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
 `;
 
-export const TeacherItem = styled.li`
+export const TeacherCard = styled.div`
   background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 10px 20px;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-size: 16px;
-  text-align: center; /* Căn giữa nội dung */
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 `;
 
 export const AddTeacherForm = styled.form`
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center; /* Căn giữa ô nhập */
-  gap: 10px;
+  gap: 15px;
+  justify-content: center;
 `;
 
 export const AddTeacherInput = styled.input`
-  padding: 10px;
+  padding: 12px;
   width: 200px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 14px;
 `;
 
 export const AddTeacherButton = styled.button`
-  padding: 10px 20px;
-  background-color: #007bff;
+  padding: 12px 20px;
+  background-color: #2196f3;
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: bold;
   transition: background 0.3s ease;
-  
+
   &:hover {
-    background-color: #0056b3;
+    background-color: #0b7dda;
+  }
+`;
+
+export const ButtonEdit = styled.button`
+  background: #ff9800;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+
+  &:hover {
+    background: #fb8c00;
+  }
+`;
+
+export const ButtonDelete = styled.button`
+  background: #f44336;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+
+  &:hover {
+    background: #e53935;
+  }
+`;
+
+export const ButtonSave = styled.button`
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 10px;
+  font-size: 14px;
+
+  &:hover {
+    background: #43a047;
   }
 `;

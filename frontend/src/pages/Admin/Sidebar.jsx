@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { BsGraphUp, BsPeople, BsPerson, BsFileText, BsBook, BsGraphDown, BsCalendar, BsGear, BsChatDots, BsCalendarEvent, BsClipboard } from 'react-icons/bs';
+import { BsGraphUp, BsPeople, BsPerson, BsFileText, BsBook, BsGraphDown, BsCalendar, BsGear, BsChatDots, BsClipboard, BsBarChart, BsPeopleFill, BsEggFried, BsCalendarEvent } from 'react-icons/bs';
 
 const SidebarContainer = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'isOpen'
@@ -85,7 +85,7 @@ const Sidebar = () => {
 
   return (
     <SidebarContainer isOpen={isOpen}>
-      <SidebarHeader>Logo</SidebarHeader>
+      <SidebarHeader>Admin</SidebarHeader>
       <SidebarNav>
         <SidebarNavItem>
           <SidebarIcon><BsGraphUp /></SidebarIcon>
@@ -93,44 +93,45 @@ const Sidebar = () => {
         </SidebarNavItem>
         <SidebarNavItem>
           <SidebarIcon><BsPeople /></SidebarIcon>
-          <StyledLink to="/admin/classes">Classes</StyledLink>
+          <StyledLink to="/admin/classes">Lớp học</StyledLink>
         </SidebarNavItem>
         <SidebarNavItem>
           <SidebarIcon><BsPerson /></SidebarIcon>
-          <StyledLink to="/admin/teachers">Teachers</StyledLink>
+          <StyledLink to="/admin/teachers">Giáo viên</StyledLink>
         </SidebarNavItem>
         <SidebarNavItem>
-          <SidebarIcon><BsFileText /></SidebarIcon>
-          <StyledLink to="/admin/assignments">Assignments</StyledLink>
+        <SidebarIcon><BsPeopleFill /></SidebarIcon> {/* icon khác nếu bạn thích */}
+        <StyledLink to="/admin/children">Quản lý học sinh</StyledLink>
+        </SidebarNavItem>
+        <SidebarNavItem>
+        <SidebarIcon><BsFileText /></SidebarIcon>
+        <StyledLink to="/admin/fees">Hóa đơn tháng</StyledLink>
         </SidebarNavItem>
         <SidebarNavItem>
           <SidebarIcon><BsBook /></SidebarIcon>
-          <StyledLink to="/admin/exams">Exams</StyledLink>
-        </SidebarNavItem>
-        <SidebarNavItem>
-          <SidebarIcon><BsGraphDown /></SidebarIcon>
-          <StyledLink to="/admin/performance">Performance</StyledLink>
-        </SidebarNavItem>
-        <SidebarNavItem>
-          <SidebarIcon><BsCalendar /></SidebarIcon>
-          <StyledLink to="/admin/attendance">Attendance</StyledLink>
+          <StyledLink to="/admin/library">Thư viện</StyledLink>
         </SidebarNavItem>
         <SidebarNavItem>
           <SidebarIcon><BsChatDots /></SidebarIcon>
-          <StyledLink to="/admin/communication">Announcement</StyledLink>
+          <StyledLink to="/admin/communication">Thông báo</StyledLink>
         </SidebarNavItem>
         <SidebarNavItem>
-          <SidebarIcon><BsCalendarEvent /></SidebarIcon>
-          <StyledLink to="/admin/events">Events and Calendar</StyledLink>
+        <SidebarIcon><BsEggFried /></SidebarIcon>
+        <StyledLink to="/admin/menu">Thực đơn</StyledLink>
         </SidebarNavItem>
         <SidebarNavItem>
-          <SidebarIcon><BsGear /></SidebarIcon>
-          <StyledLink to="/admin/settings">Settings</StyledLink>
+        <SidebarIcon><BsGear /></SidebarIcon>
+        <StyledLink to="/admin/services">Quản lý dịch vụ</StyledLink>
         </SidebarNavItem>
         <SidebarNavItem>
-          <SidebarIcon><BsClipboard /></SidebarIcon>
-          <StyledLink to="/admin/extracurricular">Extracurricular Activities</StyledLink>
+        <SidebarIcon><BsCalendarEvent /></SidebarIcon>
+        <StyledLink to="/admin/events">Sự kiện & Hoạt động</StyledLink>
         </SidebarNavItem>
+        <SidebarNavItem>
+        <SidebarIcon><BsBarChart /></SidebarIcon>
+        <StyledLink to="/admin/statistics">Báo cáo & Thống kê</StyledLink>
+        </SidebarNavItem>
+
       </SidebarNav>
       <ToggleButton onClick={toggleSidebar}>
         <ToggleIcon isOpen={isOpen}>▲</ToggleIcon>

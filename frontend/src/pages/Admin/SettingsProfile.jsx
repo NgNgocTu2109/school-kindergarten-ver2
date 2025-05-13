@@ -27,10 +27,10 @@ const SettingsProfile = () => {
             <SidebarContainer>
                 <Sidebar />
                 <Content>
-                    <ProfileHeader>Profile Details</ProfileHeader>
+                    <ProfileHeader>Chi tiết hồ sơ</ProfileHeader>
                     <ProfileDetails>
                         <ProfileLabel>Name: </ProfileLabel>
-                        <ProfileInfo>{teacherInfo.name}</ProfileInfo>
+                        <ProfileInfo>{teacherInfo.name}</ProfileInfo>   
 
                         <ProfileLabel>Email: </ProfileLabel>
                         <ProfileInfo>{teacherInfo.email}</ProfileInfo>
