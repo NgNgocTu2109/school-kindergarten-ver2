@@ -37,7 +37,12 @@ const attendanceSchema = new mongoose.Schema({
     type: String,
     enum: ["Ngủ ngon", "Ngủ ít", "Không ngủ", ""],
     default: "",
-  }
+  },
+  // ✅ Thêm trường ảnh minh chứng
+  imageUrl: {
+    type: String,
+    default: "",
+  },
 }, {
   timestamps: true,
 });
@@ -46,5 +51,3 @@ const attendanceSchema = new mongoose.Schema({
 attendanceSchema.index({ childId: 1, classId: 1, date: 1 }, { unique: true });
 
 export const Attendance = mongoose.model("Attendance", attendanceSchema);
-
-

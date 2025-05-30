@@ -1,71 +1,82 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from './Sidebar';
 import axios from 'axios';
-import { AnnouncementContainer, Content, Title, AnnouncementForm, FormGroup, Label, TextArea, Button, AnnouncementList, AnnouncementItem, 
-  AnnouncementContent } from '../../styles/AnnouncementStyles';
+import {
+  AnnouncementContainer,
+  SidebarContainer,
+  Content,
+  AnnouncementHeader,
+  AnnouncementList,
+  AnnouncementItem,
+  AnnouncementTitle,
+  AnnouncementContent,
+} from '../../styles/AnnouncementStylesStudent'; // dùng lại style student
 
-const CheckAnnoucementSection= () => {
-    const [announcement, setAnnouncement] = useState('');
+const TeacherAnnouncement = () => {
   const [announcements, setAnnouncements] = useState([]);
-  const [error, setError] = useState(null);
-
-  const fetchAnnouncements = async () => {
-    try {
-      const response = await axios.get('http://localhost:4000/api/v1/announcements/getall');
-      setAnnouncements(response.data.announcements);
-    } catch (error) {
-      console.error('Error fetching announcements:', error);
-    }
-  };
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchAnnouncements();
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const fetchAnnouncements = async () => {
     try {
-      const response = await axios.post('http://localhost:4000/api/v1/announcements', {
-        announcement: announcement,
-      });
-      console.log('Announcement sent:', response.data);
-      setAnnouncement('');
-      fetchAnnouncements();
+      const response = await axios.get('http://localhost:4000/api/v1/announcements/getall');
+      setAnnouncements(response.data.announcements || []);
     } catch (error) {
-      console.error('Error sending announcement:', error);
-      setError('Error sending announcement');
+      console.error('Lỗi khi tải thông báo:', error);
     }
   };
+
+  const filteredAnnouncements = announcements.filter((a) =>
+    a.content?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <AnnouncementContainer>
+      <SidebarContainer>
         <Sidebar />
-        <Content>
-            <Title>Announcement</Title>
-            <AnnouncementForm onSubmit={handleSubmit}>
-                <FormGroup>
-                    <Label htmlFor="announcement">Announcement : </Label>
-                    <TextArea 
-                        id="announcement"
-                        value={announcement}
-                        onChange={(e) => setAnnouncement(e.target.value)}
-                        required
-                        rows={4}
-                        cols={50}
-                    />
-                </FormGroup>
-                <Button type="submit">Send Announcement</Button>
-            </AnnouncementForm>
-            <h2>Announcemnt</h2>
-            <AnnouncementList>
-            {announcements.map((announcement) => (
-            <AnnouncementItem key={announcement._id}>
-              <AnnouncementContent>{announcement.announcement}</AnnouncementContent>
-            </AnnouncementItem>
-          ))}
-            </AnnouncementList>
-        </Content>
+      </SidebarContainer>
+
+      <Content>
+        <AnnouncementHeader>📢 Thông báo từ nhà trường</AnnouncementHeader>
+
+        <input
+          type="text"
+          placeholder="🔍 Tìm kiếm thông báo..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            padding: "12px 16px",
+            width: "100%",
+            maxWidth: "600px",
+            borderRadius: "8px",
+            border: "1px solid #ccc",
+            fontSize: "16px",
+            marginBottom: "24px",
+          }}
+        />
+
+        <AnnouncementList>
+          {filteredAnnouncements.length > 0 ? (
+            filteredAnnouncements.map((a) => (
+              <AnnouncementItem key={a._id}>
+                <AnnouncementTitle>{a.content}</AnnouncementTitle>
+                <AnnouncementContent>
+                  🕒 {new Date(a.createdAt).toLocaleString("vi-VN")}
+                </AnnouncementContent>
+              </AnnouncementItem>
+            ))
+          ) : (
+            <p style={{ color: "#888", fontStyle: "italic" }}>
+              Không có thông báo nào phù hợp.
+            </p>
+          )}
+        </AnnouncementList>
+      </Content>
     </AnnouncementContainer>
-)
+  );
 };
 
-export default CheckAnnoucementSection
+export default TeacherAnnouncement;

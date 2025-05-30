@@ -1,3 +1,4 @@
+// ... các import giữ nguyên
 import React, { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import axios from "axios";
@@ -25,7 +26,7 @@ const Attendance = () => {
     localStorage.getItem("selectedDate") || new Date().toISOString().split("T")[0]
   );
   const [students, setStudents] = useState([]);
-  const [attendance, setAttendance] = useState({}); // { childId: { status, note, comment, eat, sleep } }
+  const [attendance, setAttendance] = useState({}); // { childId: { status, ..., image: File } }
 
   const fetchClasses = async () => {
     try {
@@ -39,7 +40,23 @@ const Attendance = () => {
   const fetchStudents = async (classId) => {
     try {
       const res = await axios.get(`http://localhost:4000/api/v1/children?classId=${classId}`);
-      setStudents(res.data.children);
+      const fetchedStudents = res.data.children;
+
+      // Nếu học sinh mới, set mặc định là "Có mặt"
+      const newAttendance = {};
+      fetchedStudents.forEach((child) => {
+        newAttendance[child._id] = attendance[child._id] || {
+          status: "Có mặt", // ✅ mặc định
+          note: "",
+          comment: "",
+          eat: "",
+          sleep: "",
+          image: null
+        };
+      });
+
+      setStudents(fetchedStudents);
+      setAttendance(newAttendance);
     } catch (err) {
       console.error("Lỗi lấy học sinh:", err);
     }
@@ -51,11 +68,12 @@ const Attendance = () => {
       const mapped = {};
       res.data.attendance.forEach(item => {
         mapped[item.childId._id] = {
-          status: item.status || "",
+          status: item.status || "Có mặt",
           note: item.note || "",
           comment: item.comment || "",
           eat: item.eat || "",
           sleep: item.sleep || "",
+          image: null,
         };
       });
       setAttendance(mapped);
@@ -88,20 +106,39 @@ const Attendance = () => {
     }));
   };
 
+  const handleChangeFile = (childId, file) => {
+    setAttendance(prev => ({
+      ...prev,
+      [childId]: {
+        ...prev[childId],
+        image: file,
+      },
+    }));
+  };
+
   const handleSubmit = async () => {
     try {
-      const requests = Object.entries(attendance).map(([childId, data]) =>
-        axios.post("http://localhost:4000/api/v1/attendance", {
-          childId,
-          classId: selectedClass,
-          date,
-          ...data,
-        })
-      );
+      const requests = Object.entries(attendance).map(async ([childId, data]) => {
+        const formData = new FormData();
+        formData.append("childId", childId);
+        formData.append("classId", selectedClass);
+        formData.append("date", date);
+        formData.append("status", data.status || "Có mặt");
+        formData.append("note", data.note || "");
+        formData.append("comment", data.comment || "");
+        formData.append("eat", data.eat || "");
+        formData.append("sleep", data.sleep || "");
+        if (data.image) {
+          formData.append("image", data.image);
+        }
+
+        return axios.post("http://localhost:4000/api/v1/attendance", formData);
+      });
+
       await Promise.all(requests);
-      alert("Đã lưu điểm danh và nhật ký!");
+      alert("✅ Đã lưu điểm danh và nhật ký!");
     } catch (err) {
-      console.error("Lỗi lưu điểm danh:", err);
+      console.error("❌ Lỗi lưu điểm danh:", err);
     }
   };
 
@@ -143,6 +180,7 @@ const Attendance = () => {
                 <TableCell>Ngủ</TableCell>
                 <TableCell>Nhận xét</TableCell>
                 <TableCell>Ghi chú</TableCell>
+                <TableCell>Ảnh</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -152,10 +190,9 @@ const Attendance = () => {
                   <TableCell>{child.fullName}</TableCell>
                   <TableCell>
                     <AttendanceSelect
-                      value={attendance[child._id]?.status || ""}
+                      value={attendance[child._id]?.status || "Có mặt"}
                       onChange={(e) => handleChange(child._id, "status", e.target.value)}
                     >
-                      <option value="">-- Chọn --</option>
                       <option value="Có mặt">Có mặt</option>
                       <option value="Vắng">Vắng</option>
                       <option value="Có phép">Có phép</option>
@@ -195,6 +232,13 @@ const Attendance = () => {
                       type="text"
                       value={attendance[child._id]?.note || ""}
                       onChange={(e) => handleChange(child._id, "note", e.target.value)}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleChangeFile(child._id, e.target.files[0])}
                     />
                   </TableCell>
                 </TableRow>

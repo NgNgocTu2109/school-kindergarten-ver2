@@ -25,9 +25,10 @@ const Children = () => {
     birthday: '',
     gender: '',
     classId: '',
+    avatar: null,
   });
+  const [editingChildId, setEditingChildId] = useState(null);
 
-  // Lấy danh sách lớp
   const fetchClasses = async () => {
     try {
       const res = await axios.get('http://localhost:4000/api/v1/class/getall');
@@ -37,7 +38,6 @@ const Children = () => {
     }
   };
 
-  // Lấy danh sách học sinh
   const fetchChildren = async () => {
     try {
       const res = await axios.get('http://localhost:4000/api/v1/children');
@@ -54,12 +54,28 @@ const Children = () => {
 
   const handleAddChild = async (e) => {
     e.preventDefault();
+    const formData = new FormData();
+    formData.append("fullName", newChild.fullName);
+    formData.append("birthday", newChild.birthday);
+    formData.append("gender", newChild.gender);
+    formData.append("classId", newChild.classId);
+    if (newChild.avatar) {
+      formData.append("avatar", newChild.avatar);
+    }
+
     try {
-      await axios.post('http://localhost:4000/api/v1/children', newChild);
+      if (editingChildId) {
+        await axios.put(`http://localhost:4000/api/v1/children/${editingChildId}`, formData);
+        alert("✔️ Cập nhật học sinh thành công");
+      } else {
+        await axios.post('http://localhost:4000/api/v1/children', formData);
+        alert("✔️ Thêm học sinh thành công");
+      }
       fetchChildren();
-      setNewChild({ fullName: '', birthday: '', gender: '', classId: '' });
+      setNewChild({ fullName: '', birthday: '', gender: '', classId: '', avatar: null });
+      setEditingChildId(null);
     } catch (err) {
-      console.error('Lỗi thêm học sinh:', err);
+      console.error('Lỗi thêm/sửa học sinh:', err);
     }
   };
 
@@ -73,6 +89,17 @@ const Children = () => {
     }
   };
 
+  const handleEditChild = (child) => {
+    setNewChild({
+      fullName: child.fullName,
+      birthday: child.birthday.split("T")[0],
+      gender: child.gender,
+      classId: child.classId?._id || '',
+      avatar: null,
+    });
+    setEditingChildId(child._id);
+  };
+
   return (
     <ChildrenContainer>
       <Sidebar />
@@ -80,7 +107,7 @@ const Children = () => {
         <ChildrenContent>
           <ChildrenHeader>Quản lý Học sinh</ChildrenHeader>
 
-          <AddChildForm onSubmit={handleAddChild}>
+          <AddChildForm onSubmit={handleAddChild} encType="multipart/form-data">
             <AddChildInput
               type="text"
               placeholder="Tên học sinh"
@@ -110,35 +137,58 @@ const Children = () => {
                 <option key={cls._id} value={cls._id}>{cls.grade}</option>
               ))}
             </AddChildSelect>
-            <AddChildButton type="submit">Thêm học sinh</AddChildButton>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setNewChild({ ...newChild, avatar: e.target.files[0] })}
+            />
+            <AddChildButton type="submit">{editingChildId ? 'Cập nhật' : 'Thêm học sinh'}</AddChildButton>
           </AddChildForm>
 
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell>STT</TableCell>
+                <TableCell>Ảnh</TableCell>
                 <TableCell>Tên</TableCell>
                 <TableCell>Giới tính</TableCell>
                 <TableCell>Ngày sinh</TableCell>
                 <TableCell>Lớp</TableCell>
-                <TableCell>Xóa</TableCell>
+                <TableCell>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {children.map((child, index) => (
                 <TableRow key={child._id}>
                   <TableCell>{index + 1}</TableCell>
+                  <TableCell>
+                    {child.avatar ? (
+                      <img
+                        src={`http://localhost:4000/uploads/${child.avatar}`}
+                        alt="avatar"
+                        style={{ width: 40, height: 40, borderRadius: '50%' }}
+                      />
+                    ) : (
+                      <span style={{ color: '#aaa', fontStyle: 'italic' }}>Không có ảnh</span>
+                    )}
+                  </TableCell>
                   <TableCell>{child.fullName}</TableCell>
                   <TableCell>{child.gender}</TableCell>
                   <TableCell>{new Date(child.birthday).toLocaleDateString()}</TableCell>
                   <TableCell>{child.classId?.grade}</TableCell>
                   <TableCell>
-                    <button
-                      style={{ background: 'none', color: 'red', border: 'none', cursor: 'pointer' }}
+                    <span
+                      style={{ color: 'blue', cursor: 'pointer', marginRight: 10 }}
+                      onClick={() => handleEditChild(child)}
+                    >
+                      Sửa
+                    </span>
+                    <span
+                      style={{ color: 'red', cursor: 'pointer' }}
                       onClick={() => handleDeleteChild(child._id)}
                     >
                       Xóa
-                    </button>
+                    </span>
                   </TableCell>
                 </TableRow>
               ))}

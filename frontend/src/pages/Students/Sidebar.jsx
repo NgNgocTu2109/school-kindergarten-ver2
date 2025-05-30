@@ -86,10 +86,6 @@ const Sidebar = () => {
       <SidebarHeader>Students</SidebarHeader>
 
       <nav>
-        <NavItem to="/student/dashboard">
-          <SidebarIcon><BsGraphUp /></SidebarIcon>
-          <SidebarText>Dashboard</SidebarText>
-        </NavItem>
         <NavItem to="/student/assignments">
           <SidebarIcon><BsFileText /></SidebarIcon>
           <SidebarText>Bài tập</SidebarText>
@@ -101,10 +97,6 @@ const Sidebar = () => {
         <NavItem to="/student/services">
           <SidebarIcon><BsCartCheck /></SidebarIcon>
           <SidebarText>Đăng ký dịch vụ</SidebarText>
-        </NavItem>
-        <NavItem to="/student/performance">
-          <SidebarIcon><BsGraphDown /></SidebarIcon>
-          <SidebarText>Kết quả học tập</SidebarText>
         </NavItem>
         <NavItem to="/student/messages">
           <SidebarIcon><BsChatDots /></SidebarIcon>
@@ -122,13 +114,13 @@ const Sidebar = () => {
           <SidebarIcon><BsChatDots /></SidebarIcon>
           <SidebarText>Thông báo</SidebarText>
         </NavItem>
-        <NavItem to="/student/settings">
-          <SidebarIcon><BsGear /></SidebarIcon>
-          <SidebarText>Thông tin</SidebarText>
-        </NavItem>
         <NavItem to="/student/bills">
           <SidebarIcon><BsCashStack /></SidebarIcon>
           <SidebarText>Hóa đơn</SidebarText>
+        </NavItem>
+          <NavItem to="/student/settings">
+          <SidebarIcon><BsGear /></SidebarIcon>
+          <SidebarText>Thông tin</SidebarText>
         </NavItem>
       </nav>
     </SidebarContainer>

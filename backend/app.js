@@ -21,6 +21,8 @@ import tuitionRouter from "./routers/tuitionRoutes.js";
 import billRouter from "./routers/BillRoutes.js";
 import messageRouter from "./routers/messageRouter.js"; // Import router tin nhắn
 import eventRouter from "./routers/eventRouter.js"; // Import router sự kiện
+import contactRouter from "./routers/contactRouter.js"; // Import router liên hệ
+
 
 
 
@@ -74,6 +76,10 @@ app.use("/api/v1/tuition", tuitionRouter);
 app.use("/api/v1/bill", billRouter);
 app.use("/api/v1/message", messageRouter);
 app.use("/api/v1/event", eventRouter);
+app.use("/api/v1/contact", contactRouter);
+
+
+
 
 
 

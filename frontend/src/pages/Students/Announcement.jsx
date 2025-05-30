@@ -23,14 +23,14 @@ const AnnouncementSection = () => {
   const fetchAnnouncements = async () => {
     try {
       const response = await axios.get('http://localhost:4000/api/v1/announcements/getall');
-      setAnnouncements(response.data.announcements);
+      setAnnouncements(response.data.announcements || []);
     } catch (error) {
-      console.error('Error fetching announcements:', error);
+      console.error('Lỗi khi tải thông báo:', error);
     }
   };
 
-  const filteredAnnouncements = announcements.filter(announcement =>
-    announcement.announcement.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredAnnouncements = announcements.filter((a) =>
+    a.content?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -38,30 +38,40 @@ const AnnouncementSection = () => {
       <SidebarContainer>
         <Sidebar />
       </SidebarContainer>
-      
+
       <Content>
-        <AnnouncementHeader>Thông báo từ nhà trường</AnnouncementHeader>
-        
+        <AnnouncementHeader>📢 Thông báo từ nhà trường</AnnouncementHeader>
+
         <input
           type="text"
-          placeholder="Tìm kiếm thông báo..."
+          placeholder="🔍 Tìm kiếm thông báo..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ padding: "10px", width: "100%", marginBottom: "20px", borderRadius: "5px" }}
+          style={{
+            padding: "12px 16px",
+            width: "100%",
+            maxWidth: "600px",
+            borderRadius: "8px",
+            border: "1px solid #ccc",
+            fontSize: "16px",
+            marginBottom: "24px",
+          }}
         />
 
         <AnnouncementList>
           {filteredAnnouncements.length > 0 ? (
-            filteredAnnouncements.map((announcement) => (
-              <AnnouncementItem key={announcement._id}>
-                <AnnouncementTitle>{announcement.announcement}</AnnouncementTitle>
+            filteredAnnouncements.map((a) => (
+              <AnnouncementItem key={a._id}>
+                <AnnouncementTitle>{a.content}</AnnouncementTitle>
                 <AnnouncementContent>
-                  {new Date(announcement.createdAt).toLocaleString()}
+                  🕒 {new Date(a.createdAt).toLocaleString("vi-VN")}
                 </AnnouncementContent>
               </AnnouncementItem>
             ))
           ) : (
-            <p>Không có thông báo nào.</p>
+            <p style={{ color: "#888", fontStyle: "italic" }}>
+              Không có thông báo nào phù hợp.
+            </p>
           )}
         </AnnouncementList>
       </Content>

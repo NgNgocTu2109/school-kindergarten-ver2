@@ -164,7 +164,7 @@ const Classes = () => {
                 <TableCell>Lứa tuổi</TableCell>
                 <TableCell>Giáo viên</TableCell>
                 <TableCell>Học phí</TableCell>
-                <TableCell>Tiền ăn/ngày</TableCell>
+                <TableCell>Tiền ăn/ngày</TableCell> 
                 <TableCell>Xóa</TableCell>
               </TableRow>
             </TableHead>
@@ -175,7 +175,7 @@ const Classes = () => {
                 
                 return (
                   <TableRow key={classItem._id}>
-                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{index + 1}</TableCell>        
                     <TableCell>{classItem.grade}</TableCell>
                     <TableCell>{classItem.ageGroup}</TableCell>
                     <TableCell>{classItem.teacherId?.fullName || 'Không có'}</TableCell>

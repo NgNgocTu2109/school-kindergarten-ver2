@@ -28,7 +28,7 @@ const handleSignIn = (e) => {
   // Giả lập xác thực tài khoản (sau này có thể gọi API)
   if (email === 'std@gmail.com' && password === '123456') {
     alert('Đăng nhập thành công!');
-    navigate('/student/dashboard'); // Chuyển hướng đến trang admin
+    navigate('/student/attendance'); // Chuyển hướng đến trang admin
   } else {
     alert('Sai email hoặc mật khẩu!');
   }
@@ -62,7 +62,7 @@ const handleSignIn = (e) => {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-         <SubmitButton to="/student/dashboard" onClick={handleSignIn}>Đăng nhập</SubmitButton>
+         <SubmitButton to="/student/attendance" onClick={handleSignIn}>Đăng nhập</SubmitButton>
          <ForgotPassword href="#">Quên mật khẩu?</ForgotPassword>
 
         </FormContainer>

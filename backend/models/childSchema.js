@@ -22,8 +22,15 @@ const childSchema = new mongoose.Schema({
   parentId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Parent",
-    required: false, // Có thể thêm sau
+    required: false,
   },
+
+  // ✅ Ảnh đại diện của bé (tên file hoặc đường dẫn)
+  avatar: {
+    type: String,
+    default: "",
+  }
+
 }, {
   timestamps: true
 });

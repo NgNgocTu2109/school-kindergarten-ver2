@@ -1,7 +1,7 @@
 import { Attendance } from "../models/attendanceSchema.js";
 import { handleValidationError } from "../middlewares/errorHandler.js";
 
-// [POST] Tạo / cập nhật điểm danh + nhật ký
+// [POST] Tạo / cập nhật điểm danh + nhật ký + ảnh
 export const markAttendance = async (req, res, next) => {
   const {
     childId,
@@ -19,9 +19,22 @@ export const markAttendance = async (req, res, next) => {
       return handleValidationError("Thiếu thông tin bắt buộc!", 400);
     }
 
+    const updateData = {
+      status,
+      note,
+      comment,
+      eat,
+      sleep,
+    };
+
+    // ✅ Nếu có ảnh đính kèm, thêm vào updateData
+    if (req.file && req.file.filename) {
+      updateData.imageUrl = req.file.filename;
+    }
+
     const attendance = await Attendance.findOneAndUpdate(
       { childId, classId, date },
-      { status, note, comment, eat, sleep },
+      updateData,
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 

@@ -24,7 +24,7 @@ export const ClassesContent = styled.div`
 `;
 
 export const ClassesHeader = styled.h2`
-  font-size: 24px;
+  font-size: 30px;
   margin-bottom: 20px;
 
   @media screen and (max-width: 768px) {
@@ -32,10 +32,6 @@ export const ClassesHeader = styled.h2`
   }
 `;
 
-export const ClassList = styled.ul`
-  list-style: none;
-  padding: 0;
-`;
 
 export const ClassItem = styled.li`
   background-color: #f9f9f9;
@@ -101,14 +97,6 @@ export const ClassHeader = styled.h1`
   }
 `;
 
-export const GradeHeader = styled.h3`
-  font-size: 18px;
-  margin-bottom: 10px;
-
-  @media screen and (max-width: 768px) {
-    font-size: 16px;
-  }
-`;
 
 export const ClassItemHover = styled(ClassItem)`
   transition: all 0.3s ease;
@@ -120,15 +108,6 @@ export const ClassItemHover = styled(ClassItem)`
   }
 `;
 
-export const ClassItemText = styled.span`
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-
-  @media screen and (max-width: 768px) {
-    font-size: 14px;
-  }
-`;
 
 // Table styling
 export const Table = styled.table`

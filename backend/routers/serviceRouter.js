@@ -4,7 +4,9 @@ import {
   getAllServices,
   createService,
   updateService,
-  deleteService
+  deleteService,
+  recordServiceUsage,
+  getServiceUsageByChild,
 } from "../controllers/serviceController.js";
 
 const router = express.Router();
@@ -16,10 +18,16 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// API routes
+// === Các route chính ===
 router.get("/", getAllServices);
 router.post("/", upload.single("image"), createService);
 router.put("/:id", upload.single("image"), updateService);
 router.delete("/:id", deleteService);
+
+// === Các route cho ghi nhận sử dụng dịch vụ ===
+router.post("/:serviceId/usage", upload.single("image"), recordServiceUsage);
+router.get("/usage/:childId", getServiceUsageByChild);
+
+// ✅ Đã xoá: router.get("/registered/:childId", getRegisteredServicesByChild);
 
 export default router;

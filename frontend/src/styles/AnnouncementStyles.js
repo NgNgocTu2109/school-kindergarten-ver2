@@ -113,7 +113,7 @@ export const AnnouncementItem = styled.li`
   padding: 15px;
   margin-bottom: 10px;
   border-radius: 6px;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); 
 `;
 
 // Nội dung thông báo

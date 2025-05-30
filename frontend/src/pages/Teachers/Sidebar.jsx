@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react";
 import styled from 'styled-components';
 import { Link } from 'react-router-dom'; 
-import { BsGraphUp, BsPeople, BsPerson, BsFileText, BsBook, BsGraphDown, BsCalendar, BsGear, BsChatDots, BsQuestionSquare, BsClipboardCheck, BsEggFried, BsCalendarEvent } from 'react-icons/bs';
+import { BsGraphUp, BsPeople, BsPerson, BsFileText, BsBook, BsGraphDown, BsCalendar, BsGear, BsChatDots, BsQuestionSquare, BsClipboardCheck, BsEggFried, BsCalendarEvent, BsCardChecklist } from 'react-icons/bs';
 
 
 const SidebarContainer = styled.div`
@@ -92,10 +92,6 @@ const Sidebar = () => {
             </SidebarHeader>
             <SidebarNav>
                 <SidebarNavItem>
-                    <SidebarIcon> <BsGraphUp /></SidebarIcon>
-                    <StyledLink to="/teacher/dashboard">Dashboard</StyledLink>
-                </SidebarNavItem>
-                <SidebarNavItem>
                     <SidebarIcon> <BsPeople /></SidebarIcon>
                     <StyledLink to="/teacher/classes">Lớp học</StyledLink>
                 </SidebarNavItem>
@@ -107,13 +103,13 @@ const Sidebar = () => {
               <SidebarIcon><BsEggFried /></SidebarIcon>
               <StyledLink to="/teacher/menu">Thực đơn</StyledLink>
               </SidebarNavItem>
+              <SidebarNavItem>
+              <SidebarIcon><BsCardChecklist /></SidebarIcon>
+              <StyledLink to="/teacher/service-usage">Quản lý dịch vụ</StyledLink>
+              </SidebarNavItem>
                 <SidebarNavItem>
                     <SidebarIcon> <BsFileText /></SidebarIcon>
                     <StyledLink to="/teacher/assignments">Bài tập</StyledLink>
-                </SidebarNavItem>
-                <SidebarNavItem>
-                    <SidebarIcon> <BsGraphDown /></SidebarIcon>
-                    <StyledLink to="/teacher/performance">Kết quả học tập</StyledLink>
                 </SidebarNavItem>
                 <SidebarNavItem>
                     <SidebarIcon> <BsChatDots /></SidebarIcon>

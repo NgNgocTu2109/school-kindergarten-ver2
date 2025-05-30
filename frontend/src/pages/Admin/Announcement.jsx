@@ -17,7 +17,7 @@ import {
 } from '../../styles/AnnouncementStyles';
 
 const Announcement = () => {
-  const [announcement, setAnnouncement] = useState('');
+  const [content, setContent] = useState('');
   const [announcements, setAnnouncements] = useState([]);
 
   const fetchAnnouncements = async () => {
@@ -25,8 +25,8 @@ const Announcement = () => {
       const response = await axios.get('http://localhost:4000/api/v1/announcements/getall');
       setAnnouncements(response.data.announcements);
     } catch (error) {
-      console.error('Error fetching announcements:', error);
-      toast.error('Lỗi khi tải thông báo');
+      console.error('Lỗi khi lấy thông báo:', error);
+      toast.error('Không thể tải danh sách thông báo');
     }
   };
 
@@ -37,29 +37,26 @@ const Announcement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:4000/api/v1/announcements', {
-        announcement: announcement,
-      });
-      toast.success('Gửi thông báo thành công');
-      setAnnouncement('');
+      await axios.post('http://localhost:4000/api/v1/announcements', { content });
+      toast.success('📢 Gửi thông báo thành công');
+      setContent('');
       fetchAnnouncements();
     } catch (error) {
-      console.error('Error sending announcement:', error);
-      toast.error('Gửi thông báo thất bại');
+      console.error('Lỗi khi gửi thông báo:', error);
+      toast.error('Không thể gửi thông báo');
     }
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Bạn có chắc muốn xóa thông báo này?");
-    if (!confirmDelete) return;
+    if (!window.confirm("Bạn có chắc muốn xoá thông báo này không?")) return;
 
     try {
       await axios.delete(`http://localhost:4000/api/v1/announcements/${id}`);
-      toast.success("Xóa thông báo thành công");
+      toast.success("🗑 Đã xoá thông báo");
       setAnnouncements(prev => prev.filter(item => item._id !== id));
     } catch (error) {
-      console.error("Lỗi khi xóa thông báo:", error);
-      toast.error("Xóa thông báo thất bại");
+      console.error("Lỗi khi xoá:", error);
+      toast.error("Không thể xoá thông báo");
     }
   };
 
@@ -67,43 +64,45 @@ const Announcement = () => {
     <AnnouncementContainer>
       <Sidebar />
       <Content>
-        <Title>Thông báo</Title>
+        <Title>📢 Gửi thông báo</Title>
 
         <AnnouncementForm onSubmit={handleSubmit}>
           <FormGroup>
-            <Label htmlFor="announcement">Thông báo:</Label>
+            <Label htmlFor="content">Nội dung thông báo:</Label>
             <TextArea
-              id="announcement"
-              value={announcement}
-              onChange={(e) => setAnnouncement(e.target.value)}
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
               required
               rows={4}
-              cols={50}
+              placeholder="Nhập nội dung thông báo..."
             />
           </FormGroup>
-          <Button type="submit">Gửi thông báo</Button>
+          <Button type="submit">Gửi</Button>
         </AnnouncementForm>
 
-        <h2>Danh sách thông báo</h2>
+        <h3 style={{ marginTop: "40px" }}>📋 Danh sách thông báo</h3>
         <StyledTable>
           <thead>
             <tr>
               <th>STT</th>
               <th>Nội dung</th>
+              <th>Thời gian</th>
               <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
-            {announcements.map((announcement, index) => (
-              <tr key={announcement._id}>
+            {announcements.map((a, index) => (
+              <tr key={a._id}>
                 <td>{index + 1}</td>
-                <td>{announcement.announcement}</td>
+                <td>{a.content}</td>
+                <td>{new Date(a.createdAt).toLocaleString()}</td>
                 <td>
                   <Button
-                    style={{ backgroundColor: "red" }}
-                    onClick={() => handleDelete(announcement._id)}
+                    style={{ backgroundColor: "crimson" }}
+                    onClick={() => handleDelete(a._id)}
                   >
-                    Xóa
+                    Xoá
                   </Button>
                 </td>
               </tr>

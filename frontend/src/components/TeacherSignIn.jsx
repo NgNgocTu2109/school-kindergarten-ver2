@@ -18,7 +18,7 @@ const TeacherSignIn = () => {
     // Giả lập xác thực tài khoản (sau này có thể gọi API)
     if (email === 'teacher@gmail.com' && password === '123456') {
       alert('Đăng nhập thành công!');
-      navigate('/teacher/dashboard'); // Chuyển hướng đến trang admin
+      navigate('/teacher/classes'); // Chuyển hướng đến trang admin
     } else {
       alert('Sai email hoặc mật khẩu!');
     }
@@ -51,7 +51,7 @@ const TeacherSignIn = () => {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-         <SubmitButton to="/teacher/dashboard" onClick={handleSignIn}>Đăng nhập</SubmitButton>
+         <SubmitButton to="/teacher/classes" onClick={handleSignIn}>Đăng nhập</SubmitButton>
         <ForgotPassword href="#">Quên mật khẩu?</ForgotPassword>
 
         </FormContainer>

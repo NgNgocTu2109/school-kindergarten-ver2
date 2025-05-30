@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:4000', // 👈 Đúng với PORT bạn chạy backend
+        target: 'http://localhost:4000', // Đúng với PORT bạn chạy backend
         changeOrigin: true,
         secure: false,
       },

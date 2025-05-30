@@ -53,7 +53,7 @@ const News = () => {
         <NavigationLinks>
           <NavLink as={Link} to="/about">Giới thiệu</NavLink>
           <NavLink as={Link} to="/news">Bản tin</NavLink>
-          <NavLink href="#">Liên hệ</NavLink>
+          <NavLink as={Link} to="/contact">Liên hệ</NavLink>  
           <NavLink href="/admin/students">Trẻ nhỏ</NavLink>
           <NavLink href="/admin/teachers">Giáo viên</NavLink>
         </NavigationLinks>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { BsGraphUp, BsPeople, BsPerson, BsFileText, BsBook, BsGraphDown, BsCalendar, BsGear, BsChatDots, BsClipboard, BsBarChart, BsPeopleFill, BsEggFried, BsCalendarEvent } from 'react-icons/bs';
+import { BsGraphUp, BsPeople, BsPerson, BsFileText, BsBook, BsGraphDown, BsCalendar, BsGear, BsChatDots, BsClipboard, BsBarChart, BsPeopleFill, BsEggFried, BsCalendarEvent, BsEnvelope } from 'react-icons/bs';
 
 const SidebarContainer = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'isOpen'
@@ -88,10 +88,6 @@ const Sidebar = () => {
       <SidebarHeader>Admin</SidebarHeader>
       <SidebarNav>
         <SidebarNavItem>
-          <SidebarIcon><BsGraphUp /></SidebarIcon>
-          <StyledLink to="/admin/dashboard">Dashboard</StyledLink>
-        </SidebarNavItem>
-        <SidebarNavItem>
           <SidebarIcon><BsPeople /></SidebarIcon>
           <StyledLink to="/admin/classes">Lớp học</StyledLink>
         </SidebarNavItem>
@@ -127,6 +123,11 @@ const Sidebar = () => {
         <SidebarIcon><BsCalendarEvent /></SidebarIcon>
         <StyledLink to="/admin/events">Sự kiện & Hoạt động</StyledLink>
         </SidebarNavItem>
+        <SidebarNavItem>
+        <SidebarIcon><BsEnvelope /></SidebarIcon>
+        <StyledLink to="/admin/contact-inbox">Hộp thư liên hệ</StyledLink>
+        </SidebarNavItem>
+
         <SidebarNavItem>
         <SidebarIcon><BsBarChart /></SidebarIcon>
         <StyledLink to="/admin/statistics">Báo cáo & Thống kê</StyledLink>

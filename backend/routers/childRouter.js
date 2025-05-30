@@ -1,26 +1,35 @@
 import express from "express";
+import multer from "multer";
 import {
   createChild,
   getAllChildren,
   updateChild,
   deleteChild,
-  searchChildByName
+  searchChildByName,
 } from "../controllers/childController.js";
 
 const router = express.Router();
 
-// [POST] Thêm học sinh mới
-router.post("/", createChild);
+// Cấu hình nơi lưu ảnh
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
+});
+const upload = multer({ storage });
+
+// [POST] Thêm học sinh mới (kèm ảnh)
+router.post("/", upload.single("avatar"), createChild);
 
 // [GET] Lấy danh sách học sinh (tất cả hoặc theo lớp)
 router.get("/", getAllChildren);
 
-// [PUT] Cập nhật học sinh
-router.put("/:id", updateChild);
+// [PUT] Cập nhật học sinh (có thể thay ảnh)
+router.put("/:id", upload.single("avatar"), updateChild);
 
 // [DELETE] Xóa học sinh
 router.delete("/:id", deleteChild);
 
+// [GET] Tìm kiếm theo tên
 router.get("/search", searchChildByName);
 
 export default router;

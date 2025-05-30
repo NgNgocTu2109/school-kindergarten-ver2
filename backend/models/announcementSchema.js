@@ -1,12 +1,16 @@
 import mongoose from "mongoose";
 
-
-const announcementSchema = new mongoose.Schema({
-    announcement: {
-    type: String,
-    required: true
+const announcementSchema = new mongoose.Schema(
+  {
+    content: {
+      type: String,
+      required: true,
+      trim: true,
+    },
   },
-});
+  {
+    timestamps: true, // ✅ Thêm createdAt, updatedAt
+  }
+);
 
-
-export const Announcement = mongoose.model('Announcement', announcementSchema);
+export const Announcement = mongoose.model("Announcement", announcementSchema);

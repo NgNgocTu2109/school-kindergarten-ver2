@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import axios from "axios";
@@ -18,6 +17,7 @@ const StudentRegisterService = () => {
   const [services, setServices] = useState([]);
   const [selectedServices, setSelectedServices] = useState([]);
   const [registered, setRegistered] = useState([]);
+  const [usageHistory, setUsageHistory] = useState([]);
 
   useEffect(() => {
     fetchChildren();
@@ -51,6 +51,15 @@ const StudentRegisterService = () => {
     }
   };
 
+  const fetchUsageHistory = async (childId) => {
+    try {
+      const res = await axios.get(`http://localhost:4000/api/v1/services/usage/${childId}`);
+      setUsageHistory(res.data.services);
+    } catch (err) {
+      console.error("Lỗi lấy lịch sử sử dụng:", err);
+    }
+  };
+
   const handleRegister = async () => {
     try {
       for (const serviceId of selectedServices) {
@@ -71,6 +80,7 @@ const StudentRegisterService = () => {
     setSelectedChild(id);
     setSelectedServices([]);
     fetchRegistered(id);
+    fetchUsageHistory(id);
   };
 
   const toggleService = (serviceId) => {
@@ -111,7 +121,7 @@ const StudentRegisterService = () => {
             </ServiceButton>
           </ServiceForm>
 
-          {/* Dịch vụ dưới dạng card có ảnh + mô tả */}
+          {/* Dịch vụ dạng card */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginTop: "20px" }}>
             {services.map(service => (
               <div
@@ -148,7 +158,7 @@ const StudentRegisterService = () => {
             ))}
           </div>
 
-          {/* Danh sách đã đăng ký */}
+          {/* Dịch vụ đã đăng ký */}
           {registered.length > 0 && (
             <>
               <h4 style={{ marginTop: 30 }}>Đã đăng ký:</h4>
@@ -157,15 +167,26 @@ const StudentRegisterService = () => {
                   <div
                     key={item._id}
                     style={{
-                      width: "240px",
+                      width: "260px",
                       padding: "15px",
-                      background: "#f9f9f9",
-                      border: "1px solid #ddd",
+                      background: "#f0f8ff",
+                      border: "1px solid #bbb",
                       borderRadius: "10px"
                     }}
                   >
+                    {item.serviceId?.image && (
+                      <img
+                        src={`http://localhost:4000/uploads/${item.serviceId.image}`}
+                        alt={item.serviceId?.name}
+                        style={{ width: "100%", height: "130px", objectFit: "cover", borderRadius: "8px" }}
+                      />
+                    )}
                     <h4>{item.serviceId?.name}</h4>
+                    <p>{item.serviceId?.description}</p>
                     <p>{item.serviceId?.price}đ / {item.serviceId?.type}</p>
+                    <p style={{ fontSize: "12px", color: "#888" }}>
+                      Ngày đăng ký: {new Date(item.createdAt).toLocaleDateString("vi-VN")}
+                    </p>
                     <button
                       onClick={() => handleDeleteRegistration(item._id)}
                       style={{ marginTop: 10, color: "red" }}
@@ -173,6 +194,40 @@ const StudentRegisterService = () => {
                       Huỷ
                     </button>
                   </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Lịch sử sử dụng */}
+          {usageHistory.length > 0 && (
+            <>
+              <h4 style={{ marginTop: 40 }}>Lịch sử sử dụng:</h4>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginTop: "10px" }}>
+                {usageHistory.map(service => (
+                  service.usageRecords.map((usage, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        width: "250px",
+                        background: "#fff3e6",
+                        border: "1px solid #ddd",
+                        borderRadius: "10px",
+                        padding: "12px"
+                      }}
+                    >
+                      <h4>{service.name}</h4>
+                      {usage.image && (
+                        <img
+                          src={`http://localhost:4000/uploads/${usage.image}`}
+                          alt="ảnh ghi nhận"
+                          style={{ width: "100%", height: "120px", objectFit: "cover", borderRadius: "8px" }}
+                        />
+                      )}
+                      <p><strong>Ngày:</strong> {new Date(usage.date).toLocaleDateString("vi-VN")}</p>
+                      <p style={{ fontSize: "14px", color: "#444" }}>{usage.note}</p>
+                    </div>
+                  ))
                 ))}
               </div>
             </>

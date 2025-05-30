@@ -102,35 +102,48 @@ const StudentAttendance = () => {
           </AttendanceForm>
 
           {/* --- Điểm danh --- */}
-          <h4>Trạng thái điểm danh</h4>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Ngày</TableCell>
-                <TableCell>Trạng thái</TableCell>
-                <TableCell>Ăn</TableCell>
-                <TableCell>Ngủ</TableCell>
-                <TableCell>Nhận xét</TableCell>
-                <TableCell>Ghi chú</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {attendance ? (
-                <TableRow>
-                  <TableCell>{new Date(attendance.date).toLocaleDateString()}</TableCell>
-                  <TableCell>{attendance.status}</TableCell>
-                  <TableCell>{attendance.eat || "–"}</TableCell>
-                  <TableCell>{attendance.sleep || "–"}</TableCell>
-                  <TableCell>{attendance.comment || "–"}</TableCell>
-                  <TableCell>{attendance.note || "–"}</TableCell>
-                </TableRow>
-              ) : (
-                <TableRow>
-                  <TableCell colSpan="6">Chưa có dữ liệu điểm danh ngày này</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+        <h4>Trạng thái điểm danh</h4>
+        <Table>
+        <TableHead>
+        <TableRow>
+      <TableCell>Ngày</TableCell>
+      <TableCell>Trạng thái</TableCell>
+      <TableCell>Ăn</TableCell>
+      <TableCell>Ngủ</TableCell>
+      <TableCell>Nhận xét</TableCell>
+      <TableCell>Ghi chú</TableCell>
+      <TableCell>Ảnh minh chứng</TableCell> 
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    {attendance ? (
+      <TableRow>
+        <TableCell>{new Date(attendance.date).toLocaleDateString()}</TableCell>
+        <TableCell>{attendance.status}</TableCell>
+        <TableCell>{attendance.eat || "-"}</TableCell>
+        <TableCell>{attendance.sleep || "-"}</TableCell>
+        <TableCell>{attendance.comment || "-"}</TableCell>
+        <TableCell>{attendance.note || "-"}</TableCell>
+        <TableCell>
+          {attendance.imageUrl ? (
+            <img
+              src={`http://localhost:4000/uploads/${attendance.imageUrl}`}
+              alt="Ảnh điểm danh"
+              style={{ width: "100px", borderRadius: "6px" }}
+            />
+          ) : (
+            <span style={{ color: "#888" }}>Không có ảnh</span>
+          )}
+          </TableCell>
+          </TableRow>
+          ) : (
+          <TableRow>
+        <TableCell colSpan="7">Chưa có dữ liệu điểm danh ngày này</TableCell>
+        </TableRow>
+          )}
+        </TableBody>
+        </Table>
+
 
           {/* --- Thực đơn --- */}
           <h4 style={{ marginTop: "40px" }}>Thực đơn của bé</h4>
