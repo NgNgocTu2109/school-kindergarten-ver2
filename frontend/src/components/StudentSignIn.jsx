@@ -32,10 +32,10 @@ const StudentSignIn = () => {
       if (res.data.success) {
         const { token, child } = res.data;
 
-        // ✅ Xoá dữ liệu cũ trước khi lưu
+        //  Xoá dữ liệu cũ trước khi lưu
         localStorage.removeItem("studentUser");
 
-        // ✅ Gộp thông tin học sinh lưu vào localStorage
+        // Gộp thông tin học sinh lưu vào localStorage
         localStorage.setItem("studentUser", JSON.stringify({
           token,
           childId: child._id,
@@ -46,7 +46,7 @@ const StudentSignIn = () => {
         alert("Đăng nhập thành công!");
         navigate("/student/attendance");
 
-        // ✅ Bắt buộc load lại trang để hiển thị đúng tài khoản
+        // Bắt buộc load lại trang để hiển thị đúng tài khoản
         window.location.reload();
       }
     } catch (err) {

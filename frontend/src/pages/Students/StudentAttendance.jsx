@@ -15,7 +15,7 @@ import {
 } from '../../styles/AttendanceStyles';
 
 const StudentAttendance = () => {
-  // ✅ Lấy từ localStorage studentUser thay vì dùng key riêng
+  // Lấy từ localStorage studentUser thay vì dùng key riêng
   const studentUser = JSON.parse(localStorage.getItem("studentUser"));
   const childId = studentUser?.childId || "";
   const childName = studentUser?.fullName || "";
