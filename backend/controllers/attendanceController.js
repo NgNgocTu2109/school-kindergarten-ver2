@@ -1,4 +1,6 @@
 import { Attendance } from "../models/attendanceSchema.js";
+import { Child } from "../models/childSchema.js";
+import { Menu } from "../models/menuSchema.js";
 import { handleValidationError } from "../middlewares/errorHandler.js";
 
 // [POST] Tạo / cập nhật điểm danh + nhật ký + ảnh
@@ -27,7 +29,6 @@ export const markAttendance = async (req, res, next) => {
       sleep,
     };
 
-    // ✅ Nếu có ảnh đính kèm, thêm vào updateData
     if (req.file && req.file.filename) {
       updateData.imageUrl = req.file.filename;
     }
@@ -57,8 +58,7 @@ export const getAttendanceByClassAndDate = async (req, res, next) => {
       return handleValidationError("Thiếu classId hoặc date!", 400);
     }
 
-    const records = await Attendance.find({ classId, date })
-      .populate("childId", "fullName");
+    const records = await Attendance.find({ classId, date }).populate("childId", "fullName");
 
     res.status(200).json({
       success: true,
@@ -79,8 +79,7 @@ export const getAttendanceByChild = async (req, res, next) => {
       return handleValidationError("Thiếu childId hoặc date!", 400);
     }
 
-    const record = await Attendance.findOne({ childId, date })
-      .populate("childId", "fullName");
+    const record = await Attendance.findOne({ childId, date }).populate("childId", "fullName");
 
     if (!record) {
       return res.status(200).json({
@@ -98,3 +97,50 @@ export const getAttendanceByChild = async (req, res, next) => {
     next(err);
   }
 };
+
+// ✅ [GET] Nhật ký bé: điểm danh + thực đơn
+export const getDiaryByChildAndDate = async (req, res, next) => {
+  const { childId } = req.params;
+  const { date } = req.query;
+
+  try {
+    if (!childId || !date) {
+      return handleValidationError("Thiếu childId hoặc date!", 400);
+    }
+
+    // 1. Tìm học sinh và classId
+    const child = await Child.findById(childId);
+    if (!child) {
+      return handleValidationError("Không tìm thấy học sinh!", 404);
+    }
+
+    const classId = child.classId?.toString();
+
+    // 2. Tìm điểm danh
+    const attendance = await Attendance.findOne({ childId, date }).populate("childId", "fullName");
+
+    // 3. Tìm thực đơn trong ngày (bỏ phần giờ để tránh lệch)
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const menu = await Menu.findOne({
+      classId,
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      attendance: attendance || null,
+      menu: menu || null,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+

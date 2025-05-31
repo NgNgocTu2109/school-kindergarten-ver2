@@ -97,7 +97,7 @@ const Sidebar = () => {
         </SidebarNavItem>
         <SidebarNavItem>
         <SidebarIcon><BsPeopleFill /></SidebarIcon> {/* icon khác nếu bạn thích */}
-        <StyledLink to="/admin/children">Quản lý học sinh</StyledLink>
+        <StyledLink to="/admin/children">Quản lý tài khoản và học sinh</StyledLink>
         </SidebarNavItem>
         <SidebarNavItem>
         <SidebarIcon><BsFileText /></SidebarIcon>

@@ -6,6 +6,7 @@ import {
   updateChild,
   deleteChild,
   searchChildByName,
+  getChildById, 
 } from "../controllers/childController.js";
 
 const router = express.Router();
@@ -22,6 +23,9 @@ router.post("/", upload.single("avatar"), createChild);
 
 // [GET] Lấy danh sách học sinh (tất cả hoặc theo lớp)
 router.get("/", getAllChildren);
+
+// [GET] Lấy thông tin học sinh theo ID (dùng cho student login)
+router.get("/:id", getChildById); 
 
 // [PUT] Cập nhật học sinh (có thể thay ảnh)
 router.put("/:id", upload.single("avatar"), updateChild);

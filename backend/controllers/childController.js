@@ -1,22 +1,37 @@
 import { Child } from "../models/childSchema.js";
+import { StudentAccount } from "../models/studentAccountSchema.js"; 
+import bcrypt from "bcryptjs"; 
 import { handleValidationError } from "../middlewares/errorHandler.js";
 import fs from "fs";
 import path from "path";
 
-// [POST] Thêm học sinh mới
+// [POST] Thêm học sinh mới + tạo tài khoản đăng nhập
 export const createChild = async (req, res, next) => {
-  const { fullName, birthday, gender, classId, parentId } = req.body;
+  const { fullName, birthday, gender, classId, parentId, email, password } = req.body;
 
   try {
-    if (!fullName || !birthday || !gender || !classId) {
-      return handleValidationError("Vui lòng nhập đầy đủ thông tin học sinh!", 400);
+    if (!fullName || !birthday || !gender || !classId || !email || !password) {
+      return handleValidationError("Vui lòng nhập đầy đủ thông tin học sinh và tài khoản!", 400);
     }
 
     const avatar = req.file?.filename || "";
 
+    // ✅ 1. Tạo học sinh
     const newChild = await Child.create({ fullName, birthday, gender, classId, parentId, avatar });
-    res.status(201).json({ success: true, message: "Thêm học sinh thành công!", child: newChild });
+
+    // ✅ 2. Tạo tài khoản đăng nhập cho học sinh
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await StudentAccount.create({
+      email,
+      password: hashedPassword,
+      childId: newChild._id,
+    });
+
+    res.status(201).json({ success: true, message: "Thêm học sinh và tài khoản thành công!", child: newChild });
   } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ success: false, message: "Email đã tồn tại!" });
+    }
     next(err);
   }
 };
@@ -90,7 +105,6 @@ export const deleteChild = async (req, res, next) => {
 };
 
 // [GET] Tìm kiếm theo tên
-
 export const searchChildByName = async (req, res, next) => {
   const { name } = req.query;
   try {
@@ -100,9 +114,28 @@ export const searchChildByName = async (req, res, next) => {
 
     const children = await Child.find({
       fullName: { $regex: name, $options: "i" },
-    }).populate("classId", "grade"); // ✅ populate thông tin lớp
+    }).populate("classId", "grade");
 
     res.status(200).json({ success: true, children });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// [GET] Lấy thông tin học sinh theo ID (dùng khi student đã đăng nhập)
+export const getChildById = async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    const child = await Child.findById(id)
+      .populate("classId", "grade")
+      .populate("parentId", "fullName");
+
+    if (!child) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy học sinh!" });
+    }
+
+    res.status(200).json({ success: true, child });
   } catch (err) {
     next(err);
   }

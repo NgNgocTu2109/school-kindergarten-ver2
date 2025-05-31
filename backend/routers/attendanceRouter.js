@@ -4,6 +4,7 @@ import {
   markAttendance,
   getAttendanceByClassAndDate,
   getAttendanceByChild,
+  getDiaryByChildAndDate,
 } from "../controllers/attendanceController.js";
 
 const router = express.Router();
@@ -23,5 +24,7 @@ router.get("/", getAttendanceByClassAndDate);
 
 // GET: lấy điểm danh theo học sinh và ngày
 router.get("/child/:childId", getAttendanceByChild);
+
+router.get("/diary/:childId", getDiaryByChildAndDate);
 
 export default router;

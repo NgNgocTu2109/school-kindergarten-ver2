@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from './Sidebar';
 import axios from "axios";
 import {
@@ -9,23 +9,33 @@ import {
 } from '../../styles/SettingsProfileStyles';
 
 const StudentProfile = () => {
-  const [searchTerm, setSearchTerm] = useState("");
   const [student, setStudent] = useState(null);
 
-  const handleSearch = async () => {
-    if (!searchTerm.trim()) return;
+  useEffect(() => {
+  const fetchStudentInfo = async () => {
+    const storedUser = JSON.parse(localStorage.getItem("studentUser"));
+    console.log("Dữ liệu từ localStorage:", storedUser);
+
+    const childId = storedUser?.childId;
+    if (!childId) {
+      console.warn("Không có childId trong localStorage");
+      return;
+    }
+
     try {
-      const res = await axios.get(`http://localhost:4000/api/v1/children/search?name=${searchTerm}`);
-      if (res.data.success && res.data.children.length > 0) {
-        setStudent(res.data.children[0]);
-      } else {
-        setStudent(null);
-        alert("Không tìm thấy học sinh");
+      const res = await axios.get(`http://localhost:4000/api/v1/children/${childId}`);
+      console.log("Dữ liệu học sinh:", res.data);
+      if (res.data.success) {
+        setStudent(res.data.child);
       }
     } catch (err) {
-      console.error("Lỗi tìm kiếm học sinh:", err);
+      console.error("Lỗi lấy thông tin học sinh:", err);
     }
   };
+
+  fetchStudentInfo();
+}, []);
+
 
   return (
     <ProfileContainer>
@@ -35,20 +45,7 @@ const StudentProfile = () => {
 
       <Content>
         <div style={{ width: '100%', maxWidth: 1000, textAlign: 'center' }}>
-          <input
-            type="text"
-            placeholder="Nhập tên học sinh..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              padding: "12px",
-              width: "100%",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              marginBottom: "20px"
-            }}
-          />
-          <EditButton onClick={handleSearch}>Tìm kiếm</EditButton>
+          {/* ❌ GỠ input tìm kiếm */}
 
           {student && (
             <div style={{

@@ -6,9 +6,7 @@ import {
   Content,
   AttendanceContent,
   AttendanceHeader,
-  AttendanceForm,
   AttendanceSelect,
-  AttendanceButton,
   Table,
   TableHead,
   TableRow,
@@ -17,50 +15,30 @@ import {
 } from '../../styles/AttendanceStyles';
 
 const StudentAttendance = () => {
-  const [searchName, setSearchName] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [selectedChild, setSelectedChild] = useState(null);
+  // ✅ Lấy từ localStorage studentUser thay vì dùng key riêng
+  const studentUser = JSON.parse(localStorage.getItem("studentUser"));
+  const childId = studentUser?.childId || "";
+  const childName = studentUser?.fullName || "";
+
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendance, setAttendance] = useState(null);
   const [menu, setMenu] = useState(null);
 
-  const handleSearch = async () => {
-    if (!searchName.trim()) return;
+  const fetchDiary = async () => {
     try {
-      const res = await axios.get(`http://localhost:4000/api/v1/children/search?name=${searchName}`);
-      setSearchResults(res.data.children);
-    } catch (err) {
-      console.error('Lỗi tìm học sinh:', err);
-    }
-  };
+      if (!childId || !date) return;
 
-  const fetchAttendance = async (childId, date) => {
-    try {
-      const res = await axios.get(`http://localhost:4000/api/v1/attendance/child/${childId}?date=${date}`);
-      setAttendance(res.data.attendance);
-    } catch (err) {
-      console.error('Lỗi lấy điểm danh:', err);
-    }
-  };
-
-  const fetchMenu = async (classId, date) => {
-    try {
-      const res = await axios.get(`http://localhost:4000/api/v1/menus?classId=${classId}&date=${date}`);
+      const res = await axios.get(`http://localhost:4000/api/v1/attendance/diary/${childId}?date=${date}`);
+      setAttendance(res.data.attendance || null);
       setMenu(res.data.menu || null);
     } catch (err) {
-      console.error('Lỗi lấy thực đơn:', err);
+      console.error('Lỗi lấy nhật ký bé:', err);
     }
   };
 
   useEffect(() => {
-    if (selectedChild?._id && date) {
-      fetchAttendance(selectedChild._id, date);
-      const classId = selectedChild.classId?._id || selectedChild.classId;
-      if (classId) {
-        fetchMenu(classId, date);
-      }
-    }
-  }, [selectedChild, date]);
+    fetchDiary();
+  }, [date]);
 
   return (
     <AttendanceContainer>
@@ -68,82 +46,56 @@ const StudentAttendance = () => {
       <Content>
         <AttendanceContent>
           <AttendanceHeader>
-            Nhật ký bé {selectedChild?.fullName ? `– ${selectedChild.fullName}` : ""}
+            Nhật ký của bé {childName ? `– ${childName}` : ""}
           </AttendanceHeader>
 
-          <AttendanceForm>
-            <input
-              type="text"
-              placeholder="Nhập tên bé"
-              value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
-            />
-            <AttendanceButton onClick={handleSearch}>Tìm</AttendanceButton>
-
-            {searchResults.length > 0 && (
-              <AttendanceSelect
-                onChange={(e) => {
-                  const selected = searchResults.find(c => c._id === e.target.value);
-                  setSelectedChild(selected);
-                }}
-              >
-                <option value="">-- Chọn bé --</option>
-                {searchResults.map((child) => (
-                  <option key={child._id} value={child._id}>
-                    {child.fullName} - Lớp {child.classId?.grade || ""}
-                  </option>
-                ))}
-              </AttendanceSelect>
-            )}
-
-            <AttendanceSelect value={date} onChange={(e) => setDate(e.target.value)}>
-              <option value={date}>{date}</option>
-            </AttendanceSelect>
-          </AttendanceForm>
+          {/* Chọn ngày */}
+          <AttendanceSelect value={date} onChange={(e) => setDate(e.target.value)}>
+            <option value={date}>{date}</option>
+          </AttendanceSelect>
 
           {/* --- Điểm danh --- */}
-        <h4>Trạng thái điểm danh</h4>
-        <Table>
-        <TableHead>
-        <TableRow>
-      <TableCell>Ngày</TableCell>
-      <TableCell>Trạng thái</TableCell>
-      <TableCell>Ăn</TableCell>
-      <TableCell>Ngủ</TableCell>
-      <TableCell>Nhận xét</TableCell>
-      <TableCell>Ghi chú</TableCell>
-      <TableCell>Ảnh minh chứng</TableCell> 
-    </TableRow>
-  </TableHead>
-  <TableBody>
-    {attendance ? (
-      <TableRow>
-        <TableCell>{new Date(attendance.date).toLocaleDateString()}</TableCell>
-        <TableCell>{attendance.status}</TableCell>
-        <TableCell>{attendance.eat || "-"}</TableCell>
-        <TableCell>{attendance.sleep || "-"}</TableCell>
-        <TableCell>{attendance.comment || "-"}</TableCell>
-        <TableCell>{attendance.note || "-"}</TableCell>
-        <TableCell>
-          {attendance.imageUrl ? (
-            <img
-              src={`http://localhost:4000/uploads/${attendance.imageUrl}`}
-              alt="Ảnh điểm danh"
-              style={{ width: "100px", borderRadius: "6px" }}
-            />
-          ) : (
-            <span style={{ color: "#888" }}>Không có ảnh</span>
-          )}
-          </TableCell>
-          </TableRow>
-          ) : (
-          <TableRow>
-        <TableCell colSpan="7">Chưa có dữ liệu điểm danh ngày này</TableCell>
-        </TableRow>
-          )}
-        </TableBody>
-        </Table>
-
+          <h4 style={{ marginTop: "20px" }}>Trạng thái điểm danh</h4>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Ngày</TableCell>
+                <TableCell>Trạng thái</TableCell>
+                <TableCell>Ăn</TableCell>
+                <TableCell>Ngủ</TableCell>
+                <TableCell>Nhận xét</TableCell>
+                <TableCell>Ghi chú</TableCell>
+                <TableCell>Ảnh minh chứng</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {attendance ? (
+                <TableRow>
+                  <TableCell>{new Date(attendance.date).toLocaleDateString()}</TableCell>
+                  <TableCell>{attendance.status}</TableCell>
+                  <TableCell>{attendance.eat || "-"}</TableCell>
+                  <TableCell>{attendance.sleep || "-"}</TableCell>
+                  <TableCell>{attendance.comment || "-"}</TableCell>
+                  <TableCell>{attendance.note || "-"}</TableCell>
+                  <TableCell>
+                    {attendance.imageUrl ? (
+                      <img
+                        src={`http://localhost:4000/uploads/${attendance.imageUrl}`}
+                        alt="Ảnh điểm danh"
+                        style={{ width: "100px", borderRadius: "6px" }}
+                      />
+                    ) : (
+                      <span style={{ color: "#888" }}>Không có ảnh</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                <TableRow>
+                  <TableCell colSpan="7">Chưa có dữ liệu điểm danh ngày này</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
 
           {/* --- Thực đơn --- */}
           <h4 style={{ marginTop: "40px" }}>Thực đơn của bé</h4>

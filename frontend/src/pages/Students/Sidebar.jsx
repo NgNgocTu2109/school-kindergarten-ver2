@@ -2,13 +2,11 @@ import React from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import {
-  BsGraphUp, BsFileText, BsGraphDown,
-  BsCalendar, BsBook, BsChatDots,
-  BsGear, BsJournalText, BsEggFried,
-  BsCartCheck, BsCashStack, BsCalendarEvent
+  BsFileText, BsJournalText, BsCartCheck, BsChatDots,
+  BsCalendarEvent, BsBook, BsCashStack, BsGear
 } from "react-icons/bs";
 
-// Sidebar container
+// Styled-components
 const SidebarContainer = styled.div`
   position: fixed;
   top: 0;
@@ -27,7 +25,6 @@ const SidebarContainer = styled.div`
   }
 `;
 
-// Header
 const SidebarHeader = styled.div`
   padding: 20px;
   font-size: 24px;
@@ -40,7 +37,6 @@ const SidebarHeader = styled.div`
   }
 `;
 
-// Link item (click toàn bộ dòng)
 const NavItem = styled(Link)`
   display: flex;
   align-items: center;
@@ -61,7 +57,6 @@ const NavItem = styled(Link)`
   }
 `;
 
-// Icon
 const SidebarIcon = styled.div`
   margin-right: 10px;
   font-size: 18px;
@@ -71,7 +66,6 @@ const SidebarIcon = styled.div`
   }
 `;
 
-// Text (ẩn khi mobile)
 const SidebarText = styled.span`
   margin-left: 10px;
 
@@ -80,10 +74,14 @@ const SidebarText = styled.span`
   }
 `;
 
+// Component
 const Sidebar = () => {
+  const studentUser = JSON.parse(localStorage.getItem("studentUser"));
+  const childName = studentUser?.fullName || "Students";
+
   return (
     <SidebarContainer>
-      <SidebarHeader>Students</SidebarHeader>
+      <SidebarHeader>{childName}</SidebarHeader>
 
       <nav>
         <NavItem to="/student/assignments">
@@ -118,7 +116,7 @@ const Sidebar = () => {
           <SidebarIcon><BsCashStack /></SidebarIcon>
           <SidebarText>Hóa đơn</SidebarText>
         </NavItem>
-          <NavItem to="/student/settings">
+        <NavItem to="/student/settings">
           <SidebarIcon><BsGear /></SidebarIcon>
           <SidebarText>Thông tin</SidebarText>
         </NavItem>
