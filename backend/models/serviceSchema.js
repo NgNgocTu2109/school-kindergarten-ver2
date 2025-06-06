@@ -17,8 +17,23 @@ const serviceSchema = new mongoose.Schema({
   description: {
     type: String
   },
+  videoUrl: {
+    type: String // ✅ Link video mô tả (nếu có)
+  },
+  sessionCount: {
+    type: Number // ✅ Số buổi học (nếu áp dụng)
+  },
+  sessionDuration: {
+    type: String // ✅ Thời lượng mỗi buổi (ví dụ: "45 phút")
+  },
+  fromTime: {
+    type: String // ✅ Thời gian bắt đầu buổi học (ví dụ: "08:00")
+  },
+  toTime: {
+    type: String // ✅ Thời gian kết thúc buổi học (ví dụ: "09:30")
+  },
   image: {
-    type: String // tên file ảnh (đường dẫn tương đối)
+    type: String
   },
   usageRecords: [
     {
@@ -31,12 +46,9 @@ const serviceSchema = new mongoose.Schema({
         type: Date,
         required: true,
       },
-      image: {
-        type: String,
-      },
-      note: {
-        type: String,
-      },
+      image: String,
+      note: String,
+      sessionCount: Number, 
       createdAt: {
         type: Date,
         default: Date.now,

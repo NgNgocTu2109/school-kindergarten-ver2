@@ -6,7 +6,6 @@ import {
   Content,
   AttendanceContent,
   AttendanceHeader,
-  AttendanceSelect,
   Table,
   TableHead,
   TableRow,
@@ -15,7 +14,6 @@ import {
 } from '../../styles/AttendanceStyles';
 
 const StudentAttendance = () => {
-  // Lấy từ localStorage studentUser thay vì dùng key riêng
   const studentUser = JSON.parse(localStorage.getItem("studentUser"));
   const childId = studentUser?.childId || "";
   const childName = studentUser?.fullName || "";
@@ -50,9 +48,19 @@ const StudentAttendance = () => {
           </AttendanceHeader>
 
           {/* Chọn ngày */}
-          <AttendanceSelect value={date} onChange={(e) => setDate(e.target.value)}>
-            <option value={date}>{date}</option>
-          </AttendanceSelect>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            max={new Date().toISOString().split("T")[0]}
+            style={{
+              padding: "6px 12px",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+              marginTop: "12px",
+              marginBottom: "20px"
+            }}
+          />
 
           {/* --- Điểm danh --- */}
           <h4 style={{ marginTop: "20px" }}>Trạng thái điểm danh</h4>
@@ -80,7 +88,7 @@ const StudentAttendance = () => {
                   <TableCell>
                     {attendance.imageUrl ? (
                       <img
-                        src={`http://localhost:4000/uploads/${attendance.imageUrl}`}
+                        src={attendance.imageUrl.startsWith("http") ? attendance.imageUrl : `http://localhost:4000/${attendance.imageUrl}`}
                         alt="Ảnh điểm danh"
                         style={{ width: "100px", borderRadius: "6px" }}
                       />

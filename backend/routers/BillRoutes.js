@@ -1,12 +1,25 @@
 import express from "express";
-import { generateMonthlyBills, getAllBillsByMonth,
-    getBillsByStudent, toggleBillPaidStatus } from "../controllers/BillController.js";
+import {
+  generateMonthlyBills,
+  getAllBillsByMonth,
+  getBillsByStudent,
+  getBillsForLoggedStudent,  // ✅ Mới thêm
+  toggleBillPaidStatus
+} from "../controllers/BillController.js";
+
+import { verifyStudentToken } from "../middlewares/verifyStudentToken.js"; // ✅ Middleware xác thực học sinh
 
 const router = express.Router();
 
-router.post("/generate", generateMonthlyBills); // POST /api/v1/bill/generate?month=2025-05
-router.get("/month", getAllBillsByMonth);           // Admin xem toàn bộ theo tháng
-router.get("/student/:studentId", getBillsByStudent); // Phụ huynh xem hóa đơn con
-router.put("/:id/toggle-paid", toggleBillPaidStatus);
+router.post("/generate", generateMonthlyBills); // Admin tạo hóa đơn
+router.get("/month", getAllBillsByMonth);       // Admin xem toàn bộ theo tháng
+
+// ✅ Phụ huynh (student) xem hóa đơn con mình bằng token
+router.get("/student", verifyStudentToken, getBillsForLoggedStudent);
+
+// ✅ Trường hợp cũ nếu vẫn cần
+router.get("/student/:studentId", getBillsByStudent);
+
+router.put("/:id/toggle-paid", toggleBillPaidStatus); // Admin cập nhật trạng thái thanh toán
 
 export default router;

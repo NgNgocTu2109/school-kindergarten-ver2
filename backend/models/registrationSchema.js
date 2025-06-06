@@ -8,14 +8,23 @@ const registrationSchema = new mongoose.Schema({
   },
   serviceId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Service",
-    required: true
+    ref: "Service"
+  },
+  eventId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Event"
+  },
+  sessionCount: {
+    type: Number,
+    default: 1
   },
   date: {
     type: Date,
     default: Date.now
   }
 }, { timestamps: true });
+
+
 
 export const ServiceRegistration = mongoose.model("ServiceRegistration", registrationSchema);
 

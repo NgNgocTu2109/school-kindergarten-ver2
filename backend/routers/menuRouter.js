@@ -3,6 +3,7 @@ import {
   upsertMenu,
   getMenuByClassAndDate,
   getAllMenus,
+  getMenuHistory
 } from "../controllers/menuController.js";
 
 const router = express.Router();
@@ -15,5 +16,8 @@ router.get("/", getMenuByClassAndDate);
 
 // [GET] Lấy toàn bộ thực đơn (admin dùng)
 router.get("/all", getAllMenus);
+
+router.get("/history", getMenuHistory);
+
 
 export default router;

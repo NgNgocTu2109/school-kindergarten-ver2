@@ -5,21 +5,22 @@ import {
   borrowBook,
   returnBook,
   getBorrowHistory,
-  deleteBook, 
+  deleteBook,
 } from "../controllers/libraryController.js";
+import { verifyStudentToken } from "../middlewares/verifyStudentToken.js"; // ✅ sửa đúng tên file
 
 const router = express.Router();
 
 // Quản lý sách
 router.get("/getall", getAllBooks);
 router.post("/", createBook);
-router.delete("/:id", deleteBook); 
+router.delete("/:id", deleteBook);
 
-// Mượn / trả sách
-router.post("/borrow", borrowBook);
-router.put("/return", returnBook);
+// Mượn / trả sách – lấy studentId từ token
+router.post("/borrow", verifyStudentToken, borrowBook);
+router.put("/return", verifyStudentToken, returnBook);
 
-// Lịch sử mượn sách của học sinh
-router.get("/history/:studentId", getBorrowHistory);
+// Lịch sử mượn – lấy studentId từ token
+router.get("/history", verifyStudentToken, getBorrowHistory);
 
 export default router;

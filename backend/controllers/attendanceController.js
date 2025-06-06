@@ -29,9 +29,11 @@ export const markAttendance = async (req, res, next) => {
       sleep,
     };
 
+    // ✅ Nếu có ảnh thì thêm vào đường dẫn đầy đủ để hiển thị trên frontend
     if (req.file && req.file.filename) {
-      updateData.imageUrl = req.file.filename;
-    }
+    updateData.imageUrl = `uploads/${req.file.filename}`; // Lưu đường dẫn tương đối
+}
+
 
     const attendance = await Attendance.findOneAndUpdate(
       { childId, classId, date },
@@ -119,10 +121,9 @@ export const getDiaryByChildAndDate = async (req, res, next) => {
     // 2. Tìm điểm danh
     const attendance = await Attendance.findOne({ childId, date }).populate("childId", "fullName");
 
-    // 3. Tìm thực đơn trong ngày (bỏ phần giờ để tránh lệch)
+    // 3. Tìm thực đơn trong ngày
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
-
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
@@ -144,3 +145,30 @@ export const getDiaryByChildAndDate = async (req, res, next) => {
   }
 };
 
+// ✅ [GET] Lịch sử điểm danh theo lớp và khoảng ngày
+export const getAttendanceHistory = async (req, res, next) => {
+  const { classId, fromDate, toDate } = req.query;
+
+  try {
+    if (!classId || !fromDate || !toDate) {
+      return handleValidationError("Thiếu classId hoặc khoảng ngày!", 400);
+    }
+
+    const start = new Date(fromDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(toDate);
+    end.setHours(23, 59, 59, 999);
+
+    const records = await Attendance.find({
+      classId,
+      date: { $gte: start, $lte: end },
+    }).populate("childId", "fullName");
+
+    res.status(200).json({
+      success: true,
+      attendanceHistory: records,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

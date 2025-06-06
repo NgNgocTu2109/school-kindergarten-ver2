@@ -7,7 +7,6 @@ import {
   MenuFormWrapper,
   MenuHeader,
   MenuForm,
-  MenuSelect,
   MenuInput,
   MenuButton,
   Table,
@@ -16,18 +15,22 @@ import {
   TableCell,
   TableBody,
   MenuRow,
-  MenuLabel
+  MenuLabel,
+  MenuSelect
 } from "../../styles/MenuStyles";
 
 const AdminMenu = () => {
   const [classes, setClasses] = useState([]);
-  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedClass, setSelectedClass] = useState([]);
+  const [historyClassId, setHistoryClassId] = useState("");
+  const [selectAll, setSelectAll] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [breakfastName, setBreakfastName] = useState("");
   const [breakfastImage, setBreakfastImage] = useState("");
   const [lunchName, setLunchName] = useState("");
   const [lunchImage, setLunchImage] = useState("");
   const [savedMenu, setSavedMenu] = useState(null);
+  const [menuHistory, setMenuHistory] = useState([]);
 
   useEffect(() => {
     fetchClasses();
@@ -43,9 +46,9 @@ const AdminMenu = () => {
   };
 
   const fetchMenu = async () => {
-    if (!selectedClass || !date) return;
+    if (selectedClass.length === 0 || !date) return;
     try {
-      const res = await axios.get(`http://localhost:4000/api/v1/menus?classId=${selectedClass}&date=${date}`);
+      const res = await axios.get(`http://localhost:4000/api/v1/menus?classId=${selectedClass[0]}&date=${date}`);
       const menu = res.data.menu;
       if (menu) {
         setBreakfastName(menu.breakfast?.name || "");
@@ -65,9 +68,27 @@ const AdminMenu = () => {
     }
   };
 
+  const fetchMenuHistory = async () => {
+    if (!historyClassId) return;
+    try {
+      const res = await axios.get(`http://localhost:4000/api/v1/menus/history?classId=${historyClassId}`);
+      setMenuHistory(res.data.menus || []);
+    } catch (err) {
+      console.error("Lỗi lấy lịch sử thực đơn:", err);
+    }
+  };
+
   useEffect(() => {
-    if (selectedClass && date) fetchMenu();
+    if (selectedClass.length > 0 && date) {
+      fetchMenu();
+    }
   }, [selectedClass, date]);
+
+  useEffect(() => {
+    if (historyClassId) {
+      fetchMenuHistory();
+    }
+  }, [historyClassId]);
 
   const handleUploadImage = async (e, setImageUrl) => {
     const file = e.target.files[0];
@@ -87,22 +108,32 @@ const AdminMenu = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedClass || !date || !breakfastName || !breakfastImage || !lunchName || !lunchImage) {
+    if (selectedClass.length === 0 || !date || !breakfastName || !breakfastImage || !lunchName || !lunchImage) {
       alert("Vui lòng nhập đầy đủ thông tin!");
       return;
     }
     try {
       await axios.post("http://localhost:4000/api/v1/menus", {
-        classId: selectedClass,
+        classIds: selectedClass,
         date: new Date(date).toISOString(),
         breakfast: { name: breakfastName, imageUrl: breakfastImage },
         lunch: { name: lunchName, imageUrl: lunchImage },
       });
       alert("Lưu thực đơn thành công!");
       fetchMenu();
+      fetchMenuHistory();
     } catch (err) {
       console.error("Lỗi lưu thực đơn:", err);
     }
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedClass([]);
+    } else {
+      setSelectedClass(classes.map(cls => cls._id));
+    }
+    setSelectAll(!selectAll);
   };
 
   return (
@@ -113,12 +144,32 @@ const AdminMenu = () => {
           <MenuHeader>Quản lý Thực đơn</MenuHeader>
           <MenuForm onSubmit={handleSubmit}>
             <MenuRow>
-              <MenuSelect value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}>
-                <option value="">-- Chọn lớp --</option>
+              <MenuLabel>Chọn lớp:</MenuLabel>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+                <label style={{ fontWeight: "bold" }}>
+                  <input
+                    type="checkbox"
+                    checked={selectAll}
+                    onChange={handleSelectAll}
+                  /> Chọn tất cả
+                </label>
                 {classes.map((cls) => (
-                  <option key={cls._id} value={cls._id}>{cls.grade}</option>
+                  <label key={cls._id}>
+                    <input
+                      type="checkbox"
+                      value={cls._id}
+                      checked={selectedClass.includes(cls._id)}
+                      onChange={(e) => {
+                        const id = e.target.value;
+                        setSelectedClass(prev =>
+                          prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+                        );
+                      }}
+                    />
+                    {cls.grade}
+                  </label>
                 ))}
-              </MenuSelect>
+              </div>
               <MenuInput type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </MenuRow>
 
@@ -139,34 +190,40 @@ const AdminMenu = () => {
             <MenuButton type="submit">Lưu thực đơn</MenuButton>
           </MenuForm>
 
-          {savedMenu && (
-            <>
-              <h4>Thực đơn đã lưu:</h4>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell style={{ textAlign: "center", fontWeight: "bold" }}>Ngày</TableCell>
-                    <TableCell style={{ textAlign: "center", fontWeight: "bold" }}>Bữa sáng</TableCell>
-                    <TableCell style={{ textAlign: "center", fontWeight: "bold" }}>Bữa trưa</TableCell>
+          {/* Lịch sử thực đơn */}
+          <h4 style={{ marginTop: "40px" }}>Lịch sử thực đơn theo lớp:</h4>
+          <MenuSelect value={historyClassId} onChange={(e) => setHistoryClassId(e.target.value)}>
+            <option value="">-- Chọn lớp để xem lịch sử --</option>
+            {classes.map(cls => (
+              <option key={cls._id} value={cls._id}>{cls.grade}</option>
+            ))}
+          </MenuSelect>
+
+          {menuHistory.length > 0 && (
+            <Table style={{ marginTop: "20px" }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Ngày</TableCell>
+                  <TableCell>Bữa sáng</TableCell>
+                  <TableCell>Bữa trưa</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {menuHistory.map((item, index) => (
+                  <TableRow key={index}>
+                    <TableCell style={{ fontWeight: "bold" }}>{new Date(item.date).toLocaleDateString("vi-VN")}</TableCell>
+                    <TableCell>
+                      <img src={item.breakfast.imageUrl} alt={item.breakfast.name} style={{ width: "100px", borderRadius: "6px" }} /><br />
+                      <span style={{ fontWeight: "bold" }}>{item.breakfast.name}</span>
+                    </TableCell>
+                    <TableCell>
+                      <img src={item.lunch.imageUrl} alt={item.lunch.name} style={{ width: "100px", borderRadius: "6px" }} /><br />
+                      <span style={{ fontWeight: "bold" }}>{item.lunch.name}</span>
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell style={{ textAlign: "center", fontWeight: "bold" }}>
-                      {new Date(savedMenu.date).toLocaleDateString("vi-VN")}
-                    </TableCell>
-                    <TableCell style={{ textAlign: "center" }}>
-                      <img src={savedMenu.breakfast.imageUrl} alt={savedMenu.breakfast.name} style={{ width: "130px", borderRadius: "8px" }} />
-                      <div style={{ fontSize: "17px", fontWeight: "bold", marginTop: "6px" }}>{savedMenu.breakfast.name}</div>
-                    </TableCell>
-                    <TableCell style={{ textAlign: "center" }}>
-                      <img src={savedMenu.lunch.imageUrl} alt={savedMenu.lunch.name} style={{ width: "130px", borderRadius: "8px" }} />
-                      <div style={{ fontSize: "17px", fontWeight: "bold", marginTop: "6px" }}>{savedMenu.lunch.name}</div>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </MenuFormWrapper>
       </MenuContent>

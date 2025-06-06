@@ -103,3 +103,11 @@ export const TableCell = styled.td`
   text-align: left;
   word-wrap: break-word;
 `;
+
+export const ImagePreview = styled.img`
+  margin-top: 4px;
+  max-width: 100px;
+  max-height: 100px;
+  border-radius: 4px;
+  display: block;
+`;

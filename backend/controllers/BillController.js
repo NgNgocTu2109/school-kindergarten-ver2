@@ -4,6 +4,7 @@ import { Child } from "../models/childSchema.js";
 import { ServiceRegistration } from "../models/registrationSchema.js";
 import { Service } from "../models/serviceSchema.js";
 import { MonthlyBill } from "../models/MonthlyBillSchema.js";
+import { Event } from "../models/eventSchema.js";
 
 export const generateMonthlyBills = async (req, res) => {
   try {
@@ -14,7 +15,6 @@ export const generateMonthlyBills = async (req, res) => {
     const children = await Child.find(filter).populate("classId");
 
     if (!children || children.length === 0) {
-      console.log("[DEBUG] Không tìm thấy học sinh");
       return res.status(404).json({ message: "Không tìm thấy học sinh" });
     }
 
@@ -25,69 +25,87 @@ export const generateMonthlyBills = async (req, res) => {
     const formattedMonth = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, "0")}`;
 
     for (const child of children) {
-      console.log(`\n🔍 [DEBUG] Xử lý học sinh: ${child.fullName}`);
-
       const classId = child.classId?._id;
-      if (!classId) {
-        console.log("⚠️ BỎ QUA: Không có classId");
-        continue;
-      }
+      if (!classId) continue;
 
       const tuition = await Tuition.findOne({ classId });
-      if (!tuition) {
-        console.log("⚠️ BỎ QUA: Không tìm thấy học phí cho lớp", classId);
-        continue;
-      }
+      if (!tuition) continue;
 
+      // Tiền ăn
       const attendance = await Attendance.find({
         childId: child._id,
         status: "Có mặt",
         date: { $gte: startDate, $lt: endDate },
       });
-
       const attendedDays = attendance.length;
       const mealFees = tuition.mealFeePerDay * attendedDays;
 
-      const registrations = await ServiceRegistration.find({
-        childId: child._id,
-        createdAt: { $gte: startDate, $lt: endDate },
-      }).populate("serviceId");
+      // Dịch vụ
+     // Dịch vụ
+const registrations = await ServiceRegistration.find({
+  childId: child._id,
+  createdAt: { $gte: startDate, $lt: endDate },
+}).populate("serviceId");
 
-      const services = registrations.map((r) => ({
-        serviceName: r.serviceId?.name || "(Không tên)",
-        price: r.serviceId?.price || 0,
+// ✅ Lọc bỏ dịch vụ không hợp lệ
+const services = registrations
+  .map((r) => ({
+    serviceName: r.serviceId?.name || "",
+    price: r.serviceId?.price || 0,
+    sessionCount: r.serviceId?.sessionCount || null
+  }))
+  .filter((s) =>
+    s.serviceName &&
+    s.serviceName.trim() !== "" &&
+    s.serviceName.trim().toLowerCase() !== "không tên"
+  );
+
+const serviceFees = services.reduce((sum, s) => sum + s.price, 0);
+
+
+      // Sự kiện
+     const events = await Event.find({
+     date: { $gte: startDate, $lt: endDate },
+     eventHistory: {
+     $elemMatch: {
+     childId: child._id,
+     status: "registered"
+    }
+  }
+});
+
+
+      const eventItems = events.map((e) => ({
+        eventName: e.title,
+        fee: e.fee || 0,
       }));
+      const eventFees = eventItems.reduce((sum, e) => sum + e.fee, 0); // ✅ Tổng tiền sự kiện
 
-      const serviceFees = services.reduce((sum, s) => sum + s.price, 0);
-      const total = tuition.monthlyFee + mealFees + serviceFees;
+      // Tổng
+      const total = tuition.monthlyFee + mealFees + serviceFees + eventFees;
 
-      console.log("[DEBUG] Tổng kết:");
-      console.log("➡️ Số ngày đi học:", attendedDays);
-      console.log("➡️ Học phí:", tuition.monthlyFee);
-      console.log("➡️ Tiền ăn:", mealFees);
-      console.log("➡️ Dịch vụ:", services);
-      console.log("➡️ Tổng cộng:", total);
-
-      // Xóa hóa đơn cũ nếu có
+      // Xoá hóa đơn cũ
       await MonthlyBill.deleteOne({ studentId: child._id, month: formattedMonth });
 
+      // Tạo mới
       const bill = new MonthlyBill({
         studentId: child._id,
         month: formattedMonth,
         classFee: tuition.monthlyFee,
         serviceFees,
         mealFees,
+        eventFees, // ✅ Thêm trường này vào bill
         total,
-        isPaid: false, // ✅ Thêm trạng thái mặc định
+        isPaid: false,
         details: {
           attendedDays,
           mealFeePerDay: tuition.mealFeePerDay,
           services,
+          events: eventItems,
         },
       });
 
       await bill.save();
-      console.log("✅ Đã lưu hóa đơn!");
       results.push({ student: child.fullName, total });
     }
 
@@ -100,6 +118,7 @@ export const generateMonthlyBills = async (req, res) => {
     res.status(500).json({ message: "Lỗi khi tạo hóa đơn", error: err.message });
   }
 };
+
 
 // [1] Lấy danh sách hóa đơn toàn bộ theo tháng (Admin)
 export const getAllBillsByMonth = async (req, res) => {
@@ -147,3 +166,20 @@ export const toggleBillPaidStatus = async (req, res) => {
     res.status(500).json({ success: false, message: "Lỗi server", error: err.message });
   }
 };
+
+// [3] Lấy hóa đơn theo token của học sinh (không cần truyền studentId)
+export const getBillsForLoggedStudent = async (req, res) => {
+  try {
+    const studentId = req.childId; // từ middleware verifyStudentToken
+
+    const bills = await MonthlyBill.find({ studentId }).sort({ month: -1 });
+
+    res.status(200).json({ success: true, bills });
+  } catch (err) {
+    res.status(500).json({
+      message: "Lỗi khi lấy hóa đơn học sinh từ token",
+      error: err.message
+    });
+  }
+};
+

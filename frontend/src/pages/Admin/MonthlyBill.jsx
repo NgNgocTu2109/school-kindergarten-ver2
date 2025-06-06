@@ -1,5 +1,3 @@
-// ✅ MonthlyBill.jsx: Dùng dropdown để chọn trạng thái thanh toán
-
 import React, { useState } from "react";
 import axios from "axios";
 import Sidebar from "./Sidebar";
@@ -131,6 +129,7 @@ const MonthlyBill = () => {
                 <BillTableHead>Học phí</BillTableHead>
                 <BillTableHead>Dịch vụ</BillTableHead>
                 <BillTableHead>Tiền ăn</BillTableHead>
+                <BillTableHead>Sự kiện</BillTableHead>
                 <BillTableHead>Tổng cộng</BillTableHead>
                 <BillTableHead>Trạng thái</BillTableHead>
               </BillTableRow>
@@ -148,6 +147,7 @@ const MonthlyBill = () => {
                       <BillTableCell>{bill.classFee.toLocaleString()} đ</BillTableCell>
                       <BillTableCell>{bill.serviceFees.toLocaleString()} đ</BillTableCell>
                       <BillTableCell>{bill.mealFees.toLocaleString()} đ</BillTableCell>
+                      <BillTableCell>{(bill.eventFees || 0).toLocaleString()} đ</BillTableCell>
                       <BillTableCell style={{ fontWeight: "bold", color: "red" }}>
                         {bill.total.toLocaleString()} đ
                       </BillTableCell>
@@ -163,30 +163,77 @@ const MonthlyBill = () => {
                       </BillTableCell>
                     </BillTableRow>
 
-                    <BillTableRow>
-                      <BillTableCell colSpan="6">
-                        <div style={{ background: "#f0f2f5", padding: "12px 20px", borderRadius: "8px", margin: "8px 0" }}>
-                          <div style={{ fontSize: "15px", fontWeight: "bold", marginBottom: "8px" }}>
-                            📋 Chi tiết thanh toán:
-                          </div>
-                          <div style={{ fontSize: "14px", marginBottom: "4px" }}>
-                            🍱 <strong>Tiền ăn:</strong> {bill.details.attendedDays} ngày × {bill.details.mealFeePerDay.toLocaleString()} đ = {bill.mealFees.toLocaleString()} đ
-                          </div>
-                          {bill.details.services.length > 0 && (
-                            <div style={{ fontSize: "14px", marginTop: "6px" }}>
-                              🛎 <strong>Dịch vụ đã đăng ký:</strong>
-                              <div style={{ marginLeft: "16px", marginTop: "4px" }}>
-                                {bill.details.services.map((svc, idx) => (
-                                  <div key={idx} style={{ marginBottom: "2px" }}>
-                                    • {svc.serviceName}: {svc.price.toLocaleString()} đ
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                    {/* Chi tiết thanh toán */}
+                    <BillTableCell colSpan="7" style={{ paddingTop: "16px" }}>
+                      <div style={{
+                        border: "1px solid #ccc",
+                        borderRadius: "10px",
+                        overflow: "hidden",
+                        marginTop: "10px",
+                        width: "100%",
+                      }}>
+                        <div style={{
+                          backgroundColor: "#f1f1f1",
+                          padding: "12px 16px",
+                          fontWeight: "bold",
+                          fontSize: "16px",
+                          borderBottom: "1px solid #ccc"
+                        }}>
+                          📋 Chi tiết thanh toán
                         </div>
-                      </BillTableCell>
-                    </BillTableRow>
+
+                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                          <thead>
+                            <tr style={{ background: "#f8f9fa" }}>
+                              <th style={{ padding: "10px", border: "1px solid #ccc", textAlign: "left" }}>Hạng mục</th>
+                              <th style={{ padding: "10px", border: "1px solid #ccc", textAlign: "left" }}>Chi tiết</th>
+                              <th style={{ padding: "10px", border: "1px solid #ccc", textAlign: "right" }}>Số tiền</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td style={{ padding: "10px", border: "1px solid #ccc" }}>Tiền ăn</td>
+                              <td style={{ padding: "10px", border: "1px solid #ccc" }}>
+                                {bill.details.attendedDays} ngày × {bill.details.mealFeePerDay.toLocaleString()} đ
+                              </td>
+                              <td style={{ padding: "10px", border: "1px solid #ccc", textAlign: "right" }}>
+                                {bill.mealFees.toLocaleString()} đ
+                              </td>
+                            </tr>
+
+                            {/* Lọc dịch vụ có tên */}
+                          {bill.details.services
+                          ?.filter((svc) =>
+                          svc.serviceName &&
+                          svc.serviceName.trim() !== "" &&
+                          svc.serviceName.trim().toLowerCase() !== "không tên"
+                          )
+                      .map((svc, idx) => (
+                      <tr key={`svc-${idx}`}>
+                        <td style={{ padding: "10px", border: "1px solid #ccc" }}>Dịch vụ</td>
+                        <td style={{ padding: "10px", border: "1px solid #ccc" }}>
+                      {svc.serviceName}
+                      {svc.sessionCount ? ` (${svc.sessionCount} buổi)` : ""}
+                        </td>
+                        <td style={{ padding: "10px", border: "1px solid #ccc", textAlign: "right" }}>
+                      {svc.price.toLocaleString()} đ
+                        </td>
+                     </tr>
+                          ))}
+
+                            {bill.details.events?.map((evt, idx) => (
+                              <tr key={`evt-${idx}`}>
+                                <td style={{ padding: "10px", border: "1px solid #ccc" }}>Sự kiện</td>
+                                <td style={{ padding: "10px", border: "1px solid #ccc" }}>{evt.eventName}</td>
+                                <td style={{ padding: "10px", border: "1px solid #ccc", textAlign: "right" }}>
+                                  {evt.fee.toLocaleString()} đ
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </BillTableCell>
                   </React.Fragment>
                 ))
               )}

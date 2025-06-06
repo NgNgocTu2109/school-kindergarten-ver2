@@ -16,7 +16,11 @@ const TeacherServiceUsage = () => {
   const [selectedChild, setSelectedChild] = useState("");
   const [services, setServices] = useState([]);
   const [usageFormOpen, setUsageFormOpen] = useState(null);
-  const [formData, setFormData] = useState({ note: "", image: null });
+  const [formData, setFormData] = useState({
+    note: "",
+    image: null,
+    sessionCount: 1, // 🆕 Số buổi mặc định là 1
+  });
 
   useEffect(() => {
     fetchChildren();
@@ -57,20 +61,22 @@ const TeacherServiceUsage = () => {
       form.append("childId", selectedChild);
       form.append("note", formData.note);
       form.append("date", new Date().toISOString());
+      form.append("sessionCount", formData.sessionCount); // 🆕 Thêm số buổi
       if (formData.image) {
         form.append("image", formData.image);
       }
 
-      await axios.post(`http://localhost:4000/api/v1/services/${serviceId}/usage`, form, {
+      await axios.post(`http://localhost:4000/api/v1/services/${serviceId}/usage-teacher`, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       alert("Đã ghi nhận!");
       setUsageFormOpen(null);
-      setFormData({ note: "", image: null });
-      fetchAllServices(); // cập nhật lại usageRecords mới
+      setFormData({ note: "", image: null, sessionCount: 1 }); // reset
+      fetchAllServices();
     } catch (err) {
-      console.error("Lỗi ghi nhận:", err);
+      console.error("Lỗi ghi nhận:", err?.response?.data || err.message);
+      alert("Không thể ghi nhận! Kiểm tra lại dữ liệu.");
     }
   };
 
@@ -136,8 +142,22 @@ const TeacherServiceUsage = () => {
                             onChange={(e) => setFormData({ ...formData, note: e.target.value })}
                             style={{ width: "100%", marginTop: "6px" }}
                           />
+                          <input
+                            type="number"
+                            min="1"
+                            placeholder="Số buổi"
+                            value={formData.sessionCount}
+                            onChange={(e) => setFormData({ ...formData, sessionCount: e.target.value })}
+                            style={{ width: "100%", marginTop: "6px" }}
+                          />
                           <button
-                            style={{ marginTop: "8px", backgroundColor: "#28a745", color: "#fff", border: "none", padding: "6px 12px" }}
+                            style={{
+                              marginTop: "8px",
+                              backgroundColor: "#28a745",
+                              color: "#fff",
+                              border: "none",
+                              padding: "6px 12px"
+                            }}
                             onClick={() => handleSubmitUsage(service._id)}
                           >
                             Gửi ghi nhận

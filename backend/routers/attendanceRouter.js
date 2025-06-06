@@ -5,26 +5,31 @@ import {
   getAttendanceByClassAndDate,
   getAttendanceByChild,
   getDiaryByChildAndDate,
+  getAttendanceHistory, //  bổ sung
 } from "../controllers/attendanceController.js";
 
 const router = express.Router();
 
-// ✅ Cấu hình multer giống như service
+//  Cấu hình multer giống như service
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
 });
 const upload = multer({ storage });
 
-// ✅ POST: điểm danh kèm ảnh
+//  POST: điểm danh kèm ảnh
 router.post("/", upload.single("image"), markAttendance);
 
-// GET: lấy danh sách điểm danh theo lớp và ngày
+//  GET: danh sách điểm danh theo lớp và ngày
 router.get("/", getAttendanceByClassAndDate);
 
-// GET: lấy điểm danh theo học sinh và ngày
+//  GET: điểm danh theo học sinh và ngày
 router.get("/child/:childId", getAttendanceByChild);
 
+//  GET: nhật ký bé (điểm danh + thực đơn)
 router.get("/diary/:childId", getDiaryByChildAndDate);
+
+//  GET: lịch sử điểm danh theo lớp và khoảng ngày
+router.get("/history", getAttendanceHistory);
 
 export default router;

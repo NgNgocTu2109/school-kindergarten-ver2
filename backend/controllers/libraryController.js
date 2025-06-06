@@ -1,3 +1,4 @@
+// ✅ Updated libraryController.js: Lấy studentId từ token nếu không truyền thủ công
 import { Book } from "../models/librarySchema.js";
 import { handleValidationError } from "../middlewares/errorHandler.js";
 
@@ -32,14 +33,14 @@ export const getAllBooks = async (req, res, next) => {
   }
 };
 
-// ✅ Mượn sách
+// ✅ Mượn sách (dùng studentId từ token nếu không có req.body.studentId)
 export const borrowBook = async (req, res, next) => {
-  const { bookId, studentId } = req.body;
+  const studentId = req.childId || req.body.studentId;
+  const { bookId } = req.body;
   try {
     const book = await Book.findById(bookId);
     if (!book) return handleValidationError("Không tìm thấy sách!", 404);
 
-    // Kiểm tra nếu học sinh đang mượn sách này chưa trả
     const alreadyBorrowed = book.borrowRecords.find(
       (record) => record.studentId.toString() === studentId && record.status === "Đang mượn"
     );
@@ -47,7 +48,6 @@ export const borrowBook = async (req, res, next) => {
       return handleValidationError("Học sinh này đang mượn cuốn sách này!", 400);
     }
 
-    // Thêm bản ghi mượn mới
     book.borrowRecords.push({ studentId });
     await book.save();
 
@@ -57,14 +57,14 @@ export const borrowBook = async (req, res, next) => {
   }
 };
 
-// ✅ Trả sách
+// ✅ Trả sách (dùng studentId từ token nếu không có req.body.studentId)
 export const returnBook = async (req, res, next) => {
-  const { bookId, studentId } = req.body;
+  const studentId = req.childId || req.body.studentId;
+  const { bookId } = req.body;
   try {
     const book = await Book.findById(bookId);
     if (!book) return handleValidationError("Không tìm thấy sách!", 404);
 
-    // Tìm bản ghi mượn chưa trả
     const record = book.borrowRecords.find(
       (r) => r.studentId.toString() === studentId && r.status === "Đang mượn"
     );
@@ -83,9 +83,9 @@ export const returnBook = async (req, res, next) => {
   }
 };
 
-// ✅ Lấy lịch sử mượn của 1 học sinh
+// ✅ Lấy lịch sử mượn của học sinh (dùng studentId từ token nếu không có params)
 export const getBorrowHistory = async (req, res, next) => {
-  const { studentId } = req.params;
+  const studentId = req.childId || req.params.studentId;
   try {
     const books = await Book.find({ "borrowRecords.studentId": studentId }).populate(
       "borrowRecords.studentId",
@@ -132,4 +132,3 @@ export const deleteBook = async (req, res, next) => {
     next(err);
   }
 };
-

@@ -79,6 +79,7 @@ app.use("/api/v1/message", messageRouter);
 app.use("/api/v1/event", eventRouter);
 app.use("/api/v1/contact", contactRouter);
 app.use("/api/v1/studentaccount", studentAccountRouter);
+app.use("/api/v1/auth", studentAccountRouter);
 
 
 

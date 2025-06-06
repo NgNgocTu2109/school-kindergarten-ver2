@@ -1,104 +1,122 @@
+import { Service } from "../models/serviceSchema.js";
+import { ServiceRegistration } from "../models/registrationSchema.js";
+import { Event } from "../models/eventSchema.js";
+import { Child } from "../models/childSchema.js";
+import { Attendance } from "../models/attendanceSchema.js";
+import { Menu } from "../models/menuSchema.js";
 import { Statistics } from "../models/statisticsSchema.js";
+import { Class } from "../models/classSchema.js";
 
-// Thêm sĩ số lớp học
-export const addClassStatistics = async (req, res) => {
+export const getStatisticsOverview = async (req, res) => {
   try {
-    const { className, studentCount } = req.body;
-    if (!className || studentCount === undefined) {
-      return res.status(400).json({ success: false, message: "Thiếu className hoặc studentCount" });
-    }
+    const totalChildren = await Child.countDocuments();
 
-    const stats = await Statistics.create({ className, studentCount });
-    res.status(201).json({ success: true, statistics: stats });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+    // Dịch vụ
+    const services = await Service.find();
+    const registrations = await ServiceRegistration.find();
+    const serviceStats = services.map(service => {
+      const count = registrations.filter(r =>
+        r.serviceId && r.serviceId.toString() === service._id.toString()
+      ).length;
 
-export const getClassStatistics = async (req, res) => {
-  try {
-    const stats = await Statistics.find({ className: { $exists: true }, studentCount: { $exists: true } });
-    res.status(200).json({ success: true, classes: stats });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// Thêm tỷ lệ đi học/vắng mặt
-export const addAttendanceStatistics = async (req, res) => {
-  try {
-    const { month, attendanceRate, absentRate } = req.body;
-    if (!month || attendanceRate === undefined || absentRate === undefined) {
-      return res.status(400).json({ success: false, message: "Thiếu thông tin attendance" });
-    }
-
-    const stats = await Statistics.create({ month, attendanceRate, absentRate });
-    res.status(201).json({ success: true, statistics: stats });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-export const getAttendanceStatistics = async (req, res) => {
-  try {
-    const stats = await Statistics.find({ month: { $exists: true }, attendanceRate: { $exists: true } });
-    res.status(200).json({ success: true, attendanceStats: stats });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// Thêm tình trạng sức khỏe
-export const addHealthStatistics = async (req, res) => {
-  try {
-    const { className, name, healthStatus } = req.body;
-    if (!className || !name || !healthStatus) {
-      return res.status(400).json({ success: false, message: "Thiếu className, name hoặc healthStatus" });
-    }
-
-    const stats = await Statistics.create({
-      className,
-      healthStatus: [{ name, status: healthStatus }],
+      return {
+        name: service.name,
+        totalRegistered: count
+      };
     });
 
-    res.status(201).json({ success: true, statistics: stats });
+    // Sự kiện
+    const events = await Event.find();
+    const eventStats = events.map(event => {
+      const registered = event.eventHistory?.filter(e => e.status === 'registered').length || 0;
+      return {
+        title: event.title,
+        totalParticipants: registered
+      };
+    });
+
+    // Điểm danh
+    const attendances = await Attendance.find();
+    const attendanceStats = {};
+    attendances.forEach(record => {
+      const date = new Date(record.date);
+      const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+      if (!attendanceStats[month]) {
+        attendanceStats[month] = { present: 0, absent: 0, total: 0 };
+      }
+
+      if (Array.isArray(record.records)) {
+        record.records.forEach(r => {
+          attendanceStats[month].total += 1;
+          if (r.status === "Có mặt") attendanceStats[month].present += 1;
+          else attendanceStats[month].absent += 1;
+        });
+      }
+    });
+
+    const attendanceSummary = Object.entries(attendanceStats).map(([month, stats]) => ({
+      month,
+      presentRate: ((stats.present / (stats.total || 1)) * 100).toFixed(1),
+      absentRate: ((stats.absent / (stats.total || 1)) * 100).toFixed(1),
+    }));
+
+    // Thực đơn
+   const menus = await Menu.find(); // Không dùng populate
+const classes = await Class.find({}, "_id grade ageGroup");
+
+// Map classId to tên lớp
+const classMap = {};
+classes.forEach(cls => {
+  const name = `${cls.grade} ${cls.ageGroup}`.trim();
+  classMap[cls._id.toString()] = name;
+});
+
+// Gom dữ liệu theo classId + tháng
+const menuStats = {};
+menus.forEach(menu => {
+  const rawId = menu.classId?.toString();
+  if (!rawId) return;
+
+  const date = new Date(menu.date);
+  const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  const key = `${rawId}-${month}`;
+
+  if (!menuStats[key]) {
+    menuStats[key] = {
+      classId: rawId,
+      className: classMap[rawId] || "Không rõ",
+      month,
+      count: 0
+    };
+  }
+
+  menuStats[key].count += 1;
+});
+
+const menuSummary = Object.values(menuStats)
+  .filter(item => item.className !== "Không rõ") //  Loại bỏ các lớp không rõ
+  .map(item => ({
+    classId: item.classId,
+    className: item.className,
+    month: item.month,
+    daysWithMenu: item.count
+  }));
+
+
+
+
+    res.status(200).json({
+      success: true,
+      totalChildren,
+      serviceStats,
+      eventStats,
+      attendanceSummary,
+      menuSummary
+    });
+
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("❌ Lỗi khi thống kê:", error);
+    res.status(500).json({ success: false, message: "Lỗi server khi lấy thống kê" });
   }
 };
-
-export const getHealthStatistics = async (req, res) => {
-  try {
-    const stats = await Statistics.find({ healthStatus: { $exists: true, $ne: [] } });
-    res.status(200).json({ success: true, healthStats: stats });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// controllers/statisticsController.js
-
-// controllers/statisticsController.js
-
-export const getHealthStats = async (req, res) => {
-  try {
-    const stats = await Statistics.find({ healthStatus: { $exists: true, $ne: [] } });
-
-    const healthStats = stats.flatMap(item =>
-      item.healthStatus.map(child => ({
-        name: child.name,               // Họ tên
-        healthStatus: child.status,      // Tình trạng sức khỏe
-        className: item.className || 'Không rõ' // Lớp học
-      }))
-    );
-
-    console.log('Health Stats:', healthStats); // In dữ liệu ra console để kiểm tra
-
-    res.json({ success: true, healthStats });
-  } catch (error) {
-    console.error("❌ Lỗi khi lấy dữ liệu sức khỏe:", error);
-    res.status(500).json({ success: false, message: "Lỗi server khi lấy dữ liệu sức khỏe" });
-  }
-};
-
-

@@ -1,33 +1,37 @@
 import { Menu } from "../models/menuSchema.js";
 import { handleValidationError } from "../middlewares/errorHandler.js";
 
-// Helper: chuyển về đầu ngày ISO (00:00:00)
+// Helper: chuẩn hóa về đầu ngày
 const normalizeDate = (dateStr) => {
   const date = new Date(dateStr);
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 };
 
-// [POST] Thêm hoặc cập nhật thực đơn
+// ✅ [POST] Thêm hoặc cập nhật thực đơn cho nhiều lớp
 export const upsertMenu = async (req, res, next) => {
-  const { classId, date, breakfast, lunch } = req.body;
+  const { classIds, date, breakfast, lunch } = req.body;
 
   try {
-    if (!classId || !date || !breakfast || !lunch) {
-      return handleValidationError("Vui lòng điền đầy đủ thông tin!", 400);
+    if (!classIds || !Array.isArray(classIds) || classIds.length === 0 || !date || !breakfast || !lunch) {
+      return handleValidationError("Vui lòng điền đầy đủ thông tin và chọn ít nhất 1 lớp!", 400);
     }
 
     const normalizedDate = normalizeDate(date);
+    const results = [];
 
-    const menu = await Menu.findOneAndUpdate(
-      { classId, date: normalizedDate },
-      { breakfast, lunch },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
+    for (const classId of classIds) {
+      const updated = await Menu.findOneAndUpdate(
+        { classId, date: normalizedDate },
+        { breakfast, lunch, classId }, // luôn gán đúng classId
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+      results.push(updated);
+    }
 
     res.status(200).json({
       success: true,
-      message: "Lưu thực đơn thành công!",
-      menu,
+      message: "Lưu thực đơn thành công cho các lớp!",
+      menus: results,
     });
   } catch (err) {
     next(err);
@@ -56,7 +60,7 @@ export const getMenuByClassAndDate = async (req, res, next) => {
   }
 };
 
-// [GET] Lấy toàn bộ thực đơn (tuỳ chọn admin dùng)
+// [GET] Lấy toàn bộ thực đơn
 export const getAllMenus = async (req, res, next) => {
   try {
     const menus = await Menu.find().populate("classId", "grade").sort({ date: -1 });
@@ -64,6 +68,21 @@ export const getAllMenus = async (req, res, next) => {
       success: true,
       menus,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+export const getMenuHistory = async (req, res, next) => {
+  const { classId } = req.query;
+
+  try {
+    if (!classId) return handleValidationError("Thiếu classId", 400);
+
+    const menus = await Menu.find({ classId }).sort({ date: -1 });
+
+    res.status(200).json({ success: true, menus });
   } catch (err) {
     next(err);
   }

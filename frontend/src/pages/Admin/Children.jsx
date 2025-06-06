@@ -116,6 +116,16 @@ const Children = () => {
     }
   };
 
+  const handleDeleteAccount = async (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa tài khoản học sinh này?")) return;
+    try {
+      await axios.delete(`http://localhost:4000/api/v1/studentaccount/${id}`);
+      fetchAccounts();
+    } catch (err) {
+      console.error('Lỗi xóa tài khoản:', err);
+    }
+  };
+
   const handleEditChild = (child) => {
     setNewChild({
       fullName: child.fullName,
@@ -139,7 +149,6 @@ const Children = () => {
             Quản lý tài khoản và học sinh
           </ChildrenHeader>
 
-          {/* ICON TO Ở BÊN PHẢI */}
           <div style={{
             position: "absolute",
             top: 20,
@@ -152,7 +161,6 @@ const Children = () => {
             <BsPersonFill />
           </div>
 
-          {/* FORM NHẬP */}
           <AddChildForm onSubmit={handleAddChild} encType="multipart/form-data">
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
               <AddChildInput
@@ -208,7 +216,6 @@ const Children = () => {
             </div>
           </AddChildForm>
 
-          {/* BẢNG HỌC SINH */}
           <Table>
             <TableHead>
               <TableRow>
@@ -249,7 +256,6 @@ const Children = () => {
             </TableBody>
           </Table>
 
-          {/* BẢNG TÀI KHOẢN */}
           <h3 style={{ marginTop: "40px" }}>Danh sách Tài khoản học sinh</h3>
           <Table>
             <TableHead>
@@ -259,6 +265,7 @@ const Children = () => {
                 <TableCell>Email đăng nhập</TableCell>
                 <TableCell>Lớp</TableCell>
                 <TableCell>Ngày tạo</TableCell>
+                <TableCell>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -269,6 +276,14 @@ const Children = () => {
                   <TableCell>{acc.email}</TableCell>
                   <TableCell>{acc.childId?.classId?.grade || "?"}</TableCell>
                   <TableCell>{new Date(acc.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <span
+                      style={{ color: 'red', cursor: 'pointer' }}
+                      onClick={() => handleDeleteAccount(acc._id)}
+                    >
+                      Xóa 
+                    </span>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

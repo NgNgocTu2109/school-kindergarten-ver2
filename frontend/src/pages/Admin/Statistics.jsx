@@ -15,135 +15,117 @@ import {
   TableCell,
   TableBody
 } from '../../styles/StatisticsStyles';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const Statistics = () => {
-  const [classCounts, setClassCounts] = useState([]);
-  const [attendanceStats, setAttendanceStats] = useState([]);
-  const [healthStatus, setHealthStatus] = useState([]);
-
-  const [newClass, setNewClass] = useState({ className: '', studentCount: 0 });
-  const [newAttendance, setNewAttendance] = useState({ month: '', attendanceRate: 0, absentRate: 0 });
-  const [newHealth, setNewHealth] = useState({ name: '', className: '', healthStatus: '' });
+  const [overview, setOverview] = useState(null);
+  const [classNames, setClassNames] = useState({});
+  const [selectedMonth, setSelectedMonth] = useState('');
 
   useEffect(() => {
     fetchStatistics();
+    fetchClassNames();
   }, []);
 
   const fetchStatistics = async () => {
     try {
-      const classResponse = await axios.get('http://localhost:4000/api/v1/statistics/classes');
-      const attendanceResponse = await axios.get('http://localhost:4000/api/v1/statistics/attendance');
-      const healthResponse = await axios.get('http://localhost:4000/api/v1/statistics/health');
-
-      setClassCounts(classResponse.data.classes || []);
-      setAttendanceStats(attendanceResponse.data.attendanceStats || []);
-
-      const healthData = healthResponse.data.healthStats || [];
-      console.log("✅ Health data from backend:", healthResponse.data);
-
-      // Kiểm tra và xử lý nếu healthStatus là object có field status
-      const normalizedHealth = healthData.map(item => ({
-        name: item.name || '',
-        className: item.className || '',
-        healthStatus: typeof item.healthStatus === 'object' ? item.healthStatus.status : item.healthStatus
-      }));
-
-      setHealthStatus(normalizedHealth);
+      const overviewRes = await axios.get('http://localhost:4000/api/v1/statistics/overview');
+      setOverview(overviewRes.data);
     } catch (error) {
       console.error('❌ Lỗi khi tải dữ liệu thống kê:', error);
       toast.error('Không thể tải dữ liệu thống kê.');
     }
   };
 
-  const handleAddClass = async () => {
+  const fetchClassNames = async () => {
     try {
-      await axios.post("http://localhost:4000/api/v1/statistics/classes", newClass);
-      toast.success("Thêm lớp thành công!");
-      setNewClass({ className: "", studentCount: 0 });
-      fetchStatistics();
+      const res = await axios.get('http://localhost:4000/api/v1/class/getall');
+      const map = {};
+      res.data.classes.forEach(cls => {
+        map[cls._id] = cls.className;
+      });
+      setClassNames(map);
     } catch (error) {
-      console.error("❌ Lỗi khi thêm lớp:", error);
-      toast.error("Không thể thêm lớp.");
+      console.error("❌ Lỗi lấy tên lớp:", error);
     }
   };
 
-  const handleAddAttendance = async () => {
-    try {
-      await axios.post("http://localhost:4000/api/v1/statistics/attendance", newAttendance);
-      toast.success("Thêm thống kê điểm danh thành công!");
-      setNewAttendance({ month: "", attendanceRate: 0, absentRate: 0 });
-      fetchStatistics();
-    } catch (error) {
-      console.error("❌ Lỗi khi thêm thống kê:", error);
-      toast.error("Không thể thêm thống kê.");
-    }
-  };
-
-  const handleAddHealth = async () => {
-    try {
-      await axios.post("http://localhost:4000/api/v1/statistics/health", newHealth);
-      toast.success("Thêm dữ liệu sức khỏe thành công!");
-      setNewHealth({ name: "", className: "", healthStatus: "" });
-      fetchStatistics();  // Tải lại dữ liệu sau khi thêm thành công
-    } catch (error) {
-      console.error("❌ Lỗi khi thêm sức khỏe:", error);
-      toast.error("Không thể thêm thông tin sức khỏe.");
-    }
-  };
-  
+  const filteredAttendance = overview?.attendanceSummary?.filter(item =>
+    !selectedMonth || item.month === selectedMonth
+  );
 
   return (
     <StatisticsContainer>
       <ToastContainer />
       <Sidebar />
       <Content>
-        {/* Sĩ số lớp */}
+        {/* Tổng quan dịch vụ */}
         <Section>
-          <SectionTitle>Báo cáo sĩ số lớp học</SectionTitle>
+          <SectionTitle>Thống kê dịch vụ</SectionTitle>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>#</TableCell>
-                <TableCell>Tên lớp</TableCell>
-                <TableCell>Sĩ số</TableCell>
+                <TableCell>Tên dịch vụ</TableCell>
+                <TableCell>Số học sinh đăng ký</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {Array.isArray(classCounts) && classCounts.map((item, index) => (
+              {overview?.serviceStats?.map((item, index) => (
                 <TableRow key={index}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{item.className}</TableCell>
-                  <TableCell>{item.studentCount}</TableCell>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell>{item.totalRegistered}</TableCell>
                 </TableRow>
               ))}
-              <TableRow>
-                <TableCell>-</TableCell>
-                <TableCell>
-                  <input
-                    value={newClass.className}
-                    onChange={(e) => setNewClass({ ...newClass, className: e.target.value })}
-                    placeholder="Tên lớp"
-                  />
-                </TableCell>
-                <TableCell>
-                  <input
-                    type="number"
-                    value={newClass.studentCount}
-                    onChange={(e) => setNewClass({ ...newClass, studentCount: e.target.value })}
-                    placeholder="Sĩ số"
-                  />
-                </TableCell>
-                <TableCell>
-                  <button onClick={handleAddClass}>Thêm</button>
-                </TableCell>
-              </TableRow>
             </TableBody>
           </Table>
         </Section>
 
-        {/* Thống kê đi học/vắng mặt */}
+        {/* Tổng quan sự kiện */}
         <Section>
-          <SectionTitle>Thống kê tỷ lệ đi học/vắng mặt theo tháng</SectionTitle>
+          <SectionTitle>Thống kê sự kiện</SectionTitle>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Tên sự kiện</TableCell>
+                <TableCell>Số học sinh tham gia</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {overview?.eventStats?.map((item, index) => (
+                <TableRow key={index}>
+                  <TableCell>{item.title}</TableCell>
+                  <TableCell>{item.totalParticipants}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Section>
+
+        {/* Thống kê điểm danh - lọc + biểu đồ */}
+        <Section>
+          <SectionTitle>Tỷ lệ điểm danh theo tháng</SectionTitle>
+
+          <div style={{ marginBottom: '10px' }}>
+            <label>Chọn tháng: </label>
+            <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}>
+              <option value="">-- Tất cả --</option>
+              {overview?.attendanceSummary?.map((item, index) => (
+                <option key={index} value={item.month}>{item.month}</option>
+              ))}
+            </select>
+          </div>
+
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={filteredAttendance} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="presentRate" name="Đi học" fill="#82ca9d" />
+              <Bar dataKey="absentRate" name="Vắng mặt" fill="#f87171" />
+            </BarChart>
+          </ResponsiveContainer>
+
           <Table>
             <TableHead>
               <TableRow>
@@ -153,93 +135,39 @@ const Statistics = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {Array.isArray(attendanceStats) && attendanceStats.map((item, index) => (
+              {filteredAttendance?.map((item, index) => (
                 <TableRow key={index}>
                   <TableCell>{item.month}</TableCell>
-                  <TableCell>{item.attendanceRate}%</TableCell>
-                  <TableCell>{item.absentRate}%</TableCell>
+                  <TableCell>{isNaN(item.presentRate) ? '0%' : `${item.presentRate}%`}</TableCell>
+                  <TableCell>{isNaN(item.absentRate) ? '0%' : `${item.absentRate}%`}</TableCell>
                 </TableRow>
               ))}
-              <TableRow>
-                <TableCell>
-                  <input
-                    value={newAttendance.month}
-                    onChange={(e) => setNewAttendance({ ...newAttendance, month: e.target.value })}
-                    placeholder="Tháng"
-                  />
-                </TableCell>
-                <TableCell>
-                  <input
-                    type="number"
-                    value={newAttendance.attendanceRate}
-                    onChange={(e) => setNewAttendance({ ...newAttendance, attendanceRate: e.target.value })}
-                    placeholder="Đi học (%)"
-                  />
-                </TableCell>
-                <TableCell>
-                  <input
-                    type="number"
-                    value={newAttendance.absentRate}
-                    onChange={(e) => setNewAttendance({ ...newAttendance, absentRate: e.target.value })}
-                    placeholder="Vắng (%)"
-                  />
-                </TableCell>
-                <TableCell>
-                  <button onClick={handleAddAttendance}>Thêm</button>
-                </TableCell>
-              </TableRow>
             </TableBody>
           </Table>
         </Section>
 
-        {/* Tình trạng sức khỏe */}
         <Section>
-          <SectionTitle>Tổng hợp tình trạng sức khỏe của trẻ</SectionTitle>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Họ tên</TableCell>
-                <TableCell>Lớp</TableCell>
-                <TableCell>Tình trạng sức khỏe</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {Array.isArray(healthStatus) && healthStatus.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell>{item.name}</TableCell>
-                  <TableCell>{item.className}</TableCell>
-                  <TableCell>{item.healthStatus}</TableCell>
-                </TableRow>
-              ))}
-              <TableRow>
-                <TableCell>
-                  <input
-                    value={newHealth.name}
-                    onChange={(e) => setNewHealth({ ...newHealth, name: e.target.value })}
-                    placeholder="Họ tên"
-                  />
-                </TableCell>
-                <TableCell>
-                  <input
-                    value={newHealth.className}
-                    onChange={(e) => setNewHealth({ ...newHealth, className: e.target.value })}
-                    placeholder="Lớp"
-                  />
-                </TableCell>
-                <TableCell>
-                  <input
-                    value={newHealth.healthStatus}
-                    onChange={(e) => setNewHealth({ ...newHealth, healthStatus: e.target.value })}
-                    placeholder="Tình trạng"
-                  />
-                </TableCell>
-                <TableCell>
-                  <button onClick={handleAddHealth}>Thêm</button>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </Section>
+  <SectionTitle>Số ngày có thực đơn mỗi lớp</SectionTitle>
+  <Table>
+    <TableHead>
+      <TableRow>
+        <TableCell>Tháng</TableCell>
+        <TableCell>Lớp</TableCell>
+        <TableCell>Số ngày có thực đơn</TableCell>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {overview?.menuSummary?.map((item, index) => (
+        <TableRow key={index}>
+          <TableCell>{item.month}</TableCell>
+          <TableCell>{item.className}</TableCell>
+          <TableCell>{item.daysWithMenu}</TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</Section>
+
       </Content>
     </StatisticsContainer>
   );

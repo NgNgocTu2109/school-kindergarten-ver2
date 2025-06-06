@@ -20,4 +20,7 @@ const menuSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+// ✅ Mỗi classId chỉ có 1 thực đơn/ngày
+menuSchema.index({ classId: 1, date: 1 }, { unique: true });
+
 export const Menu = mongoose.model("Menu", menuSchema);

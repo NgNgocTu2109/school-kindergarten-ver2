@@ -7,31 +7,25 @@ import {
   ServiceContent,
   ServiceHeader,
   ServiceForm,
-  ServiceSelect,
   ServiceButton,
 } from "../../styles/ServiceStyles";
 
 const StudentRegisterService = () => {
-  const [children, setChildren] = useState([]);
-  const [selectedChild, setSelectedChild] = useState("");
+  const studentUser = JSON.parse(localStorage.getItem("studentUser"));
+  const token = localStorage.getItem("studentToken");
+  const childId = studentUser?.childId || "";
   const [services, setServices] = useState([]);
   const [selectedServices, setSelectedServices] = useState([]);
   const [registered, setRegistered] = useState([]);
   const [usageHistory, setUsageHistory] = useState([]);
 
   useEffect(() => {
-    fetchChildren();
     fetchServices();
-  }, []);
-
-  const fetchChildren = async () => {
-    try {
-      const res = await axios.get("http://localhost:4000/api/v1/children");
-      setChildren(res.data.children);
-    } catch (err) {
-      console.error("Lỗi lấy danh sách bé:", err);
+    if (childId) {
+      fetchRegistered();
+      fetchUsageHistory();
     }
-  };
+  }, [childId]);
 
   const fetchServices = async () => {
     try {
@@ -42,7 +36,7 @@ const StudentRegisterService = () => {
     }
   };
 
-  const fetchRegistered = async (childId) => {
+  const fetchRegistered = async () => {
     try {
       const res = await axios.get(`http://localhost:4000/api/v1/registrations?childId=${childId}`);
       setRegistered(res.data.registrations);
@@ -51,41 +45,52 @@ const StudentRegisterService = () => {
     }
   };
 
-  const fetchUsageHistory = async (childId) => {
+  const fetchUsageHistory = async () => {
     try {
-      const res = await axios.get(`http://localhost:4000/api/v1/services/usage/${childId}`);
+      const res = await axios.get(`http://localhost:4000/api/v1/services/usage`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("Dữ liệu usageHistory nhận được từ backend:", res.data.services);
       setUsageHistory(res.data.services);
     } catch (err) {
       console.error("Lỗi lấy lịch sử sử dụng:", err);
     }
   };
 
+  useEffect(() => {
+    console.log("usageHistory state cập nhật:", usageHistory);
+    console.log("childId trong frontend:", childId);
+
+    usageHistory.forEach(service => {
+      service.usageRecords.forEach(usage => {
+        console.log(`usage.childId: ${usage.childId.toString()}, so sánh với childId: ${childId}`);
+      });
+    });
+  }, [usageHistory, childId]);
+
   const handleRegister = async () => {
     try {
       for (const serviceId of selectedServices) {
+        const selectedService = services.find((s) => s._id === serviceId);
         await axios.post("http://localhost:4000/api/v1/registrations", {
-          childId: selectedChild,
+          childId,
           serviceId,
+          sessionCount: selectedService?.sessionCount || 1,
         });
       }
+
       alert("Đăng ký thành công!");
-      fetchRegistered(selectedChild);
+      fetchRegistered();
     } catch (err) {
       console.error("Lỗi đăng ký:", err);
     }
   };
 
-  const handleChildChange = (e) => {
-    const id = e.target.value;
-    setSelectedChild(id);
-    setSelectedServices([]);
-    fetchRegistered(id);
-    fetchUsageHistory(id);
-  };
-
   const toggleService = (serviceId) => {
     if (selectedServices.includes(serviceId)) {
-      setSelectedServices(selectedServices.filter(id => id !== serviceId));
+      setSelectedServices(selectedServices.filter((id) => id !== serviceId));
     } else {
       setSelectedServices([...selectedServices, serviceId]);
     }
@@ -95,7 +100,7 @@ const StudentRegisterService = () => {
     if (!window.confirm("Bạn có chắc muốn huỷ dịch vụ này?")) return;
     try {
       await axios.delete(`http://localhost:4000/api/v1/registrations/${id}`);
-      fetchRegistered(selectedChild);
+      fetchRegistered();
     } catch (err) {
       console.error("Lỗi huỷ đăng ký:", err);
     }
@@ -109,13 +114,6 @@ const StudentRegisterService = () => {
           <ServiceHeader>Đăng ký Dịch vụ</ServiceHeader>
 
           <ServiceForm>
-            <ServiceSelect value={selectedChild} onChange={handleChildChange}>
-              <option value="">-- Chọn bé --</option>
-              {children.map(child => (
-                <option key={child._id} value={child._id}>{child.fullName}</option>
-              ))}
-            </ServiceSelect>
-
             <ServiceButton type="button" onClick={handleRegister}>
               Đăng ký
             </ServiceButton>
@@ -123,16 +121,16 @@ const StudentRegisterService = () => {
 
           {/* Dịch vụ dạng card */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginTop: "20px" }}>
-            {services.map(service => (
+            {services.map((service) => (
               <div
                 key={service._id}
                 style={{
-                  width: "260px",
+                  width: "280px",
                   border: "1px solid #ccc",
                   borderRadius: "10px",
                   padding: "15px",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  backgroundColor: "#fff"
+                  backgroundColor: "#fff",
                 }}
               >
                 {service.image && (
@@ -144,7 +142,23 @@ const StudentRegisterService = () => {
                 )}
                 <h3 style={{ margin: "12px 0 6px 0" }}>{service.name}</h3>
                 <p style={{ fontSize: "14px", color: "#555" }}>{service.description}</p>
-                <strong>{service.price}đ / {service.type}</strong>
+                <p>
+                  <strong>
+                    {service.price}đ / {service.type}
+                  </strong>
+                </p>
+                {service.videoUrl && (
+                  <p>
+                    <a href={service.videoUrl} target="_blank" rel="noopener noreferrer">
+                      Xem mô tả video
+                    </a>
+                  </p>
+                )}
+                {service.sessionCount && <p><strong>Số buổi:</strong> {service.sessionCount}</p>}
+                {service.sessionDuration && <p><strong>Thời lượng:</strong> {service.sessionDuration} phút</p>}
+                {service.fromTime && service.toTime && (
+                  <p><strong>Thời gian:</strong> {service.fromTime} - {service.toTime}</p>
+                )}
                 <div style={{ marginTop: "10px" }}>
                   <label>
                     <input
@@ -163,7 +177,7 @@ const StudentRegisterService = () => {
             <>
               <h4 style={{ marginTop: 30 }}>Đã đăng ký:</h4>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginTop: "10px" }}>
-                {registered.map(item => (
+                {registered.map((item) => (
                   <div
                     key={item._id}
                     style={{
@@ -171,7 +185,7 @@ const StudentRegisterService = () => {
                       padding: "15px",
                       background: "#f0f8ff",
                       border: "1px solid #bbb",
-                      borderRadius: "10px"
+                      borderRadius: "10px",
                     }}
                   >
                     {item.serviceId?.image && (
@@ -204,16 +218,24 @@ const StudentRegisterService = () => {
             <>
               <h4 style={{ marginTop: 40 }}>Lịch sử sử dụng:</h4>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginTop: "10px" }}>
-                {usageHistory.map(service => (
-                  service.usageRecords.map((usage, idx) => (
+                {usageHistory.map((service) => {
+                  // Lọc usageRecords chỉ giữ usage của đúng childId
+                  const filteredUsage = service.usageRecords.filter(
+                    (usage) => usage.childId && usage.childId.toString() === childId
+                  );
+
+                  // Debug log dữ liệu trước khi render
+                  console.log(`Dịch vụ: ${service.name}, số usage phù hợp: ${filteredUsage.length}`);
+
+                  return filteredUsage.map((usage, idx) => (
                     <div
-                      key={idx}
+                      key={`${service.name}-${idx}`}
                       style={{
                         width: "250px",
                         background: "#fff3e6",
                         border: "1px solid #ddd",
                         borderRadius: "10px",
-                        padding: "12px"
+                        padding: "12px",
                       }}
                     >
                       <h4>{service.name}</h4>
@@ -225,10 +247,11 @@ const StudentRegisterService = () => {
                         />
                       )}
                       <p><strong>Ngày:</strong> {new Date(usage.date).toLocaleDateString("vi-VN")}</p>
+                      <p><strong>Số buổi:</strong> {usage.sessionCount || 1}</p>
                       <p style={{ fontSize: "14px", color: "#444" }}>{usage.note}</p>
                     </div>
-                  ))
-                ))}
+                  ));
+                })}
               </div>
             </>
           )}

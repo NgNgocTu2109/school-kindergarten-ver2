@@ -1,9 +1,10 @@
 import { Message } from "../models/messageSchema.js";
 import { Child } from "../models/childSchema.js";
 
-// Gửi tin nhắn từ student
+// ✅ Gửi tin nhắn từ student (lấy childId từ token)
 export const sendMessage = async (req, res) => {
-  const { childId, content } = req.body;
+  const childId = req.childId; // lấy từ middleware
+  const { content } = req.body;
 
   try {
     const child = await Child.findById(childId);
@@ -16,7 +17,7 @@ export const sendMessage = async (req, res) => {
   }
 };
 
-// Giáo viên xem tất cả tin nhắn
+// ✅ Giáo viên xem tất cả tin nhắn
 export const getAllMessages = async (req, res) => {
   try {
     const messages = await Message.find()
@@ -29,7 +30,7 @@ export const getAllMessages = async (req, res) => {
   }
 };
 
-// Trả lời tin nhắn
+// ✅ Trả lời tin nhắn
 export const replyMessage = async (req, res) => {
   const { messageId } = req.params;
   const { content } = req.body;
@@ -46,9 +47,10 @@ export const replyMessage = async (req, res) => {
   }
 };
 
-// Student xem toàn bộ tin nhắn của con mình
+// ✅ Student xem tất cả tin nhắn của con mình (dựa vào token)
 export const getMessagesByChild = async (req, res) => {
-  const { childId } = req.params;
+  const childId = req.childId; // lấy từ middleware
+
   try {
     const messages = await Message.find({ childId }).sort({ createdAt: -1 });
     res.status(200).json({ success: true, messages });
@@ -57,7 +59,7 @@ export const getMessagesByChild = async (req, res) => {
   }
 };
 
-// Xóa tin nhắn
+// ✅ Xoá tin nhắn
 export const deleteMessage = async (req, res) => {
   const { messageId } = req.params;
 
@@ -69,6 +71,7 @@ export const deleteMessage = async (req, res) => {
   }
 };
 
+// ✅ Cập nhật nội dung tin nhắn
 export const updateMessage = async (req, res) => {
   const { messageId } = req.params;
   const { content } = req.body;
@@ -84,5 +87,3 @@ export const updateMessage = async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 };
-
-

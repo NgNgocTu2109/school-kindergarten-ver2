@@ -30,25 +30,27 @@ const StudentSignIn = () => {
       });
 
       if (res.data.success) {
-        const { token, child } = res.data;
+  const { token, child } = res.data;
 
-        //  Xoá dữ liệu cũ trước khi lưu
-        localStorage.removeItem("studentUser");
+  localStorage.removeItem("studentUser");
+  localStorage.removeItem("studentToken");
 
-        // Gộp thông tin học sinh lưu vào localStorage
-        localStorage.setItem("studentUser", JSON.stringify({
-          token,
-          childId: child._id,
-          fullName: child.fullName,
-          classId: child.classId
-        }));
+  localStorage.setItem("studentUser", JSON.stringify({
+    token,
+    childId: child._id,
+    fullName: child.fullName,
+    classId: child.classId
+  }));
 
-        alert("Đăng nhập thành công!");
-        navigate("/student/attendance");
+  localStorage.setItem("studentToken", token);
 
-        // Bắt buộc load lại trang để hiển thị đúng tài khoản
-        window.location.reload();
-      }
+  console.log("Lưu token và childId vào localStorage:", token, child._id);
+
+  alert("Đăng nhập thành công!");
+  navigate("/student/attendance");
+  window.location.reload();
+}
+
     } catch (err) {
       console.error("Đăng nhập lỗi:", err);
       alert("Sai email hoặc mật khẩu!");

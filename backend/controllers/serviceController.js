@@ -16,7 +16,17 @@ export const getAllServices = async (req, res, next) => {
 // ✅ Tạo dịch vụ mới
 export const createService = async (req, res, next) => {
   try {
-    const { name, price, type, description } = req.body;
+    const {
+      name,
+      price,
+      type,
+      description,
+      videoUrl,
+      sessionCount,
+      sessionDuration,
+      fromTime,
+      toTime,
+    } = req.body;
     let imagePath = "";
 
     if (req.file) {
@@ -28,7 +38,12 @@ export const createService = async (req, res, next) => {
       price,
       type,
       description,
-      image: imagePath
+      videoUrl,
+      sessionCount,
+      sessionDuration,
+      fromTime,
+      toTime,
+      image: imagePath,
     });
 
     res.status(201).json({ success: true, service: newService });
@@ -41,8 +56,29 @@ export const createService = async (req, res, next) => {
 export const updateService = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, price, type, description } = req.body;
-    let updatedFields = { name, price, type, description };
+    const {
+      name,
+      price,
+      type,
+      description,
+      videoUrl,
+      sessionCount,
+      sessionDuration,
+      fromTime,
+      toTime,
+    } = req.body;
+
+    let updatedFields = {
+      name,
+      price,
+      type,
+      description,
+      videoUrl,
+      sessionCount,
+      sessionDuration,
+      fromTime,
+      toTime,
+    };
 
     if (req.file) {
       updatedFields.image = req.file.filename;
@@ -50,7 +86,8 @@ export const updateService = async (req, res, next) => {
 
     const updated = await Service.findByIdAndUpdate(id, updatedFields, { new: true });
 
-    if (!updated) return res.status(404).json({ success: false, message: "Không tìm thấy dịch vụ!" });
+    if (!updated)
+      return res.status(404).json({ success: false, message: "Không tìm thấy dịch vụ!" });
 
     res.status(200).json({ success: true, service: updated });
   } catch (err) {
@@ -63,7 +100,8 @@ export const deleteService = async (req, res, next) => {
   const { id } = req.params;
   try {
     const deleted = await Service.findByIdAndDelete(id);
-    if (!deleted) return res.status(404).json({ success: false, message: "Không tìm thấy dịch vụ!" });
+    if (!deleted)
+      return res.status(404).json({ success: false, message: "Không tìm thấy dịch vụ!" });
 
     if (deleted.image) {
       const imagePath = path.join("uploads", deleted.image);
@@ -76,69 +114,75 @@ export const deleteService = async (req, res, next) => {
   }
 };
 
-// ✅ Ghi nhận bé sử dụng dịch vụ
+// ✅ Ghi nhận bé sử dụng dịch vụ (có thêm sessionCount)
 export const recordServiceUsage = async (req, res) => {
   try {
-    const { childId, date, note } = req.body;
+    const childId = req.childId || req.body.childId;
+    const { date, note, sessionCount } = req.body;
     const { serviceId } = req.params;
 
+    console.log("recordServiceUsage nhận dữ liệu:", { childId, serviceId, date, note, sessionCount });
+
     if (!childId || !date) {
-      return res.status(400).json({
-        success: false,
-        message: "Thiếu thông tin childId hoặc ngày"
-      });
+      return res.status(400).json({ success: false, message: "Thiếu thông tin childId hoặc ngày" });
     }
 
     const objectChildId = new mongoose.Types.ObjectId(childId);
     const service = await Service.findById(serviceId);
-
     if (!service) {
-      return res.status(404).json({
-        success: false,
-        message: "Không tìm thấy dịch vụ!"
-      });
+      return res.status(404).json({ success: false, message: "Không tìm thấy dịch vụ!" });
     }
 
     const usage = {
       childId: objectChildId,
       date: new Date(date),
       note: note || "",
+      sessionCount: Number(sessionCount) || 1, // mặc định 1
       image: req.file?.filename || null,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
     service.usageRecords.push(usage);
     await service.save();
 
-    res.status(201).json({
-      success: true,
-      message: "Đã ghi nhận sử dụng dịch vụ",
-      usage
-    });
+    console.log("Ghi nhận sử dụng dịch vụ thành công:", usage);
+
+    res.status(201).json({ success: true, message: "Đã ghi nhận sử dụng dịch vụ", usage });
   } catch (err) {
     console.error("Lỗi ghi nhận sử dụng:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ✅ Lấy lịch sử sử dụng dịch vụ theo childId
+// ✅ Lấy lịch sử sử dụng dịch vụ
 export const getServiceUsageByChild = async (req, res) => {
   try {
-    const { childId } = req.params;
+    const childId = req.childId || req.params.childId;
+    console.log("childId nhận trong controller:", childId);
+
+    if (!childId) {
+      return res.status(400).json({ success: false, message: "Thiếu childId" });
+    }
+
     const objectChildId = new mongoose.Types.ObjectId(childId);
 
-    const services = await Service.find({
-      "usageRecords.childId": objectChildId
-    });
+    const services = await Service.find({ "usageRecords.childId": objectChildId });
 
-    const filtered = services.map(s => ({
+    console.log(`Tìm thấy ${services.length} dịch vụ có usageRecords của childId`);
+
+    const filtered = services.map((s) => ({
       name: s.name,
       image: s.image,
-      usageRecords: s.usageRecords.filter(u => u.childId.toString() === childId)
+      usageRecords: s.usageRecords.filter(
+        (u) => u.childId && u.childId.toString() === objectChildId.toString()
+      ),
     }));
+
+    console.log("Dữ liệu trả về cho client (filtered):", filtered);
 
     res.status(200).json({ success: true, services: filtered });
   } catch (err) {
+    console.error("Lỗi trong getServiceUsageByChild:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 };

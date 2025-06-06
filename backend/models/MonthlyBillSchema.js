@@ -13,6 +13,7 @@ const monthlyBillSchema = new mongoose.Schema({
   classFee: Number,
   serviceFees: Number,
   mealFees: Number,
+  eventFees: Number, // ✅ Thêm tổng tiền sự kiện
   total: Number,
   isPaid: {
     type: Boolean,
@@ -25,6 +26,13 @@ const monthlyBillSchema = new mongoose.Schema({
       {
         serviceName: String,
         price: Number,
+        sessionCount: Number,
+      },
+    ],
+    events: [ // ✅ Thêm chi tiết sự kiện
+      {
+        eventName: String,
+        fee: Number,
       },
     ],
   },

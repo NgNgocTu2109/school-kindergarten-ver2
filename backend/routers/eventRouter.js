@@ -7,6 +7,10 @@ import {
   getEventsByClass,
   deleteEvent,
   updateEvent,
+  registerEventParticipant,
+  getEventParticipants,
+  toggleEventRegistration,
+  getStudentRegisteredEvents
 } from "../controllers/eventController.js";
 
 const router = express.Router();
@@ -24,22 +28,31 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Tạo sự kiện
+//  Tạo sự kiện mới (có ảnh)
 router.post("/", upload.single("image"), createEvent);
 
-// Lấy tất cả sự kiện
+//  Lấy tất cả sự kiện
 router.get("/", getAllEvents);
-
-router.get("/all", getAllEvents);
-
+router.get("/all", getAllEvents); // fallback route
 
 // Lấy sự kiện theo classId
 router.get("/class/:classId", getEventsByClass);
 
-// Xoá sự kiện
+//  Xoá sự kiện
 router.delete("/:id", deleteEvent);
 
-// Cập nhật sự kiện
+//  Cập nhật sự kiện (có ảnh mới)
 router.put("/:id", upload.single("image"), updateEvent);
+
+//  Học sinh tham gia sự kiện
+router.post("/:eventId/participate", registerEventParticipant);
+
+
+//  Admin lấy danh sách học sinh tham gia sự kiện
+router.get("/:eventId/participants", getEventParticipants);
+
+router.post("/:eventId/toggle", toggleEventRegistration);
+
+router.get("/registered", getStudentRegisteredEvents);
 
 export default router;
