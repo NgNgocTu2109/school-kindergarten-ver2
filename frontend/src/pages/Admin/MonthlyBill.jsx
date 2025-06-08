@@ -1,3 +1,4 @@
+// src/pages/Admin/MonthlyBill.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import Sidebar from "./Sidebar";
@@ -22,27 +23,36 @@ const MonthlyBill = () => {
 
   const [childName, setChildName] = useState("");
   const [childId, setChildId] = useState(null);
+  const [childInfo, setChildInfo] = useState(null);
   const [bills, setBills] = useState([]);
 
   const handleSearch = async () => {
-    try {
-      const res = await axios.get(`http://localhost:4000/api/v1/children/search?name=${childName}`);
-      const children = res.data.children;
-      const child = children?.[0];
+  try {
+    const res = await axios.get(`http://localhost:4000/api/v1/children/search?name=${childName}`);
+    const children = res.data.children;
+    const child = children?.[0];
 
-      if (!child) {
-        alert("Không tìm thấy học sinh");
-        setChildId(null);
-        setBills([]);
-        return;
-      }
 
-      setChildId(child._id);
-      await fetchBillByStudent(child._id);
-    } catch (err) {
-      console.error("Lỗi tìm học sinh:", err);
+    if (!child) {
+      alert("Không tìm thấy học sinh");
+      setChildId(null);
+      setChildInfo(null);
+      setBills([]);
+      return;
     }
-  };
+
+    setChildId(child._id);
+    setChildInfo({
+      fullName: child.fullName,
+      className: child.classId?.grade || "---",
+    });
+
+    await fetchBillByStudent(child._id);
+  } catch (err) {
+    console.error("Lỗi tìm học sinh:", err);
+  }
+};
+
 
   const handleGenerateBill = async () => {
     try {
@@ -73,6 +83,94 @@ const MonthlyBill = () => {
     } catch (err) {
       console.error("Lỗi cập nhật trạng thái:", err);
     }
+  };
+
+  const handlePrintInvoice = (bill, child) => {
+    const newWindow = window.open("", "_blank");
+    const serviceRows = bill.details.services?.map((svc) => {
+      const buoi = svc.sessionCount || 1;
+      const gia = svc.price / buoi;
+      return `
+        <tr>
+          <td style="border: 1px solid #000; padding: 6px;">${svc.serviceName}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${buoi}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: right;">${gia.toLocaleString()} đ</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: right;">${svc.price.toLocaleString()} đ</td>
+        </tr>`;
+    }).join("") || "";
+
+    const eventRows = bill.details.events?.map((evt) => {
+      return `
+        <tr>
+          <td style="border: 1px solid #000; padding: 6px;">${evt.eventName}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">1</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: right;">${evt.fee.toLocaleString()} đ</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: right;">${evt.fee.toLocaleString()} đ</td>
+        </tr>`;
+    }).join("") || "";
+
+    const content = `
+      <html>
+      <head>
+        <title>Hóa đơn ${bill.month}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; font-size: 16px; }
+          h2, h3 { text-align: center; margin: 0; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #000; padding: 8px; }
+          th { background-color: #f0f0f0; }
+          .total { text-align: right; font-weight: bold; margin-top: 20px; }
+          .center { text-align: center; margin-top: 40px; }
+        </style>
+      </head>
+      <body>
+        <h2>TRƯỜNG MẦM NON ABC</h2>
+        <h3>HÓA ĐƠN THANH TOÁN</h3>
+
+        <p><strong>Mã hóa đơn:</strong> HD-${bill.month.replace("-", "")}</p>
+        <p><strong>Ngày:</strong> ${new Date().toLocaleDateString("vi-VN")}</p>
+        <p><strong>Học sinh:</strong> ${child?.fullName || "---"}</p>
+        <p><strong>Lớp:</strong> ${child?.className || "---"}</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Mục</th>
+              <th>Buổi</th>
+              <th>Giá</th>
+              <th>Thành tiền</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Học phí</td>
+              <td style="text-align: center;">1</td>
+              <td style="text-align: right;">${bill.classFee.toLocaleString()} đ</td>
+              <td style="text-align: right;">${bill.classFee.toLocaleString()} đ</td>
+            </tr>
+            <tr>
+              <td>Tiền ăn</td>
+              <td style="text-align: center;">${bill.details.attendedDays}</td>
+              <td style="text-align: right;">${bill.details.mealFeePerDay.toLocaleString()} đ</td>
+              <td style="text-align: right;">${bill.mealFees.toLocaleString()} đ</td>
+            </tr>
+            ${serviceRows}
+            ${eventRows}
+          </tbody>
+        </table>
+
+        <p class="total">TỔNG CỘNG: ${bill.total.toLocaleString()} đ</p>
+        <p class="total">Trạng thái: ${bill.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}</p>
+
+        <p class="center">Cảm ơn quý phụ huynh!</p>
+      </body>
+      </html>
+    `;
+
+    newWindow.document.write(content);
+    newWindow.document.close();
+    newWindow.focus();
+    newWindow.print();
   };
 
   return (
@@ -163,22 +261,9 @@ const MonthlyBill = () => {
                       </BillTableCell>
                     </BillTableRow>
 
-                    {/* Chi tiết thanh toán */}
                     <BillTableCell colSpan="7" style={{ paddingTop: "16px" }}>
-                      <div style={{
-                        border: "1px solid #ccc",
-                        borderRadius: "10px",
-                        overflow: "hidden",
-                        marginTop: "10px",
-                        width: "100%",
-                      }}>
-                        <div style={{
-                          backgroundColor: "#f1f1f1",
-                          padding: "12px 16px",
-                          fontWeight: "bold",
-                          fontSize: "16px",
-                          borderBottom: "1px solid #ccc"
-                        }}>
+                      <div style={{ border: "1px solid #ccc", borderRadius: "10px", overflow: "hidden", marginTop: "10px", width: "100%" }}>
+                        <div style={{ backgroundColor: "#f1f1f1", padding: "12px 16px", fontWeight: "bold", fontSize: "16px", borderBottom: "1px solid #ccc" }}>
                           📋 Chi tiết thanh toán
                         </div>
 
@@ -193,45 +278,29 @@ const MonthlyBill = () => {
                           <tbody>
                             <tr>
                               <td style={{ padding: "10px", border: "1px solid #ccc" }}>Tiền ăn</td>
-                              <td style={{ padding: "10px", border: "1px solid #ccc" }}>
-                                {bill.details.attendedDays} ngày × {bill.details.mealFeePerDay.toLocaleString()} đ
-                              </td>
-                              <td style={{ padding: "10px", border: "1px solid #ccc", textAlign: "right" }}>
-                                {bill.mealFees.toLocaleString()} đ
-                              </td>
+                              <td style={{ padding: "10px", border: "1px solid #ccc" }}>{bill.details.attendedDays} ngày × {bill.details.mealFeePerDay.toLocaleString()} đ</td>
+                              <td style={{ padding: "10px", border: "1px solid #ccc", textAlign: "right" }}>{bill.mealFees.toLocaleString()} đ</td>
                             </tr>
-
-                            {/* Lọc dịch vụ có tên */}
-                          {bill.details.services
-                          ?.filter((svc) =>
-                          svc.serviceName &&
-                          svc.serviceName.trim() !== "" &&
-                          svc.serviceName.trim().toLowerCase() !== "không tên"
-                          )
-                      .map((svc, idx) => (
-                      <tr key={`svc-${idx}`}>
-                        <td style={{ padding: "10px", border: "1px solid #ccc" }}>Dịch vụ</td>
-                        <td style={{ padding: "10px", border: "1px solid #ccc" }}>
-                      {svc.serviceName}
-                      {svc.sessionCount ? ` (${svc.sessionCount} buổi)` : ""}
-                        </td>
-                        <td style={{ padding: "10px", border: "1px solid #ccc", textAlign: "right" }}>
-                      {svc.price.toLocaleString()} đ
-                        </td>
-                     </tr>
-                          ))}
-
+                            {bill.details.services?.filter(svc => svc.serviceName?.trim() && svc.serviceName.trim().toLowerCase() !== "không tên").map((svc, idx) => (
+                              <tr key={`svc-${idx}`}>
+                                <td style={{ padding: "10px", border: "1px solid #ccc" }}>Dịch vụ</td>
+                                <td style={{ padding: "10px", border: "1px solid #ccc" }}>{svc.serviceName}{svc.sessionCount ? ` (${svc.sessionCount} buổi)` : ""}</td>
+                                <td style={{ padding: "10px", border: "1px solid #ccc", textAlign: "right" }}>{svc.price.toLocaleString()} đ</td>
+                              </tr>
+                            ))}
                             {bill.details.events?.map((evt, idx) => (
                               <tr key={`evt-${idx}`}>
                                 <td style={{ padding: "10px", border: "1px solid #ccc" }}>Sự kiện</td>
                                 <td style={{ padding: "10px", border: "1px solid #ccc" }}>{evt.eventName}</td>
-                                <td style={{ padding: "10px", border: "1px solid #ccc", textAlign: "right" }}>
-                                  {evt.fee.toLocaleString()} đ
-                                </td>
+                                <td style={{ padding: "10px", border: "1px solid #ccc", textAlign: "right" }}>{evt.fee.toLocaleString()} đ</td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
+
+                        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                          <button onClick={() => handlePrintInvoice(bill, childInfo)}>🖨️ In hóa đơn</button> 
+                        </div>
                       </div>
                     </BillTableCell>
                   </React.Fragment>

@@ -16,24 +16,123 @@ import {
 
 const StudentMonthlyBill = () => {
   const [bills, setBills] = useState([]);
+  const [childInfo, setChildInfo] = useState(null);
   const token = localStorage.getItem("studentToken");
 
   useEffect(() => {
-    const fetchBills = async () => {
-      if (!token) return;
+    const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:4000/api/v1/bill/student", {
+        const resBill = await axios.get("http://localhost:4000/api/v1/bill/student", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setBills(res.data.bills || []);
+        setBills(resBill.data.bills || []);
+
+        const resInfo = await axios.get("http://localhost:4000/api/v1/studentaccount/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const child = resInfo.data.child;
+        setChildInfo({
+          fullName: child.fullName,
+          className: child.classId?.grade || "---",
+        });
       } catch (err) {
-        console.error("Lỗi lấy hóa đơn:", err);
+        console.error("Lỗi khi lấy dữ liệu:", err);
         setBills([]);
       }
     };
 
-    fetchBills();
+    if (token) fetchData();
   }, [token]);
+
+  const handlePrintInvoice = (bill) => {
+    const newWindow = window.open("", "_blank");
+
+    const serviceRows = bill.details.services?.map((svc) => {
+      const buoi = svc.sessionCount || 1;
+      const gia = svc.price / buoi;
+      return `
+        <tr>
+          <td style="border: 1px solid #000; padding: 6px;">${svc.serviceName}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${buoi}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: right;">${gia.toLocaleString()} đ</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: right;">${svc.price.toLocaleString()} đ</td>
+        </tr>`;
+    }).join("") || "";
+
+    const eventRows = bill.details.events?.map((evt) => {
+      return `
+        <tr>
+          <td style="border: 1px solid #000; padding: 6px;">${evt.eventName}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">1</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: right;">${evt.fee.toLocaleString()} đ</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: right;">${evt.fee.toLocaleString()} đ</td>
+        </tr>`;
+    }).join("") || "";
+
+    const content = `
+      <html>
+      <head>
+        <title>Hóa đơn ${bill.month}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; font-size: 16px; }
+          h2, h3 { text-align: center; margin: 0; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #000; padding: 8px; }
+          th { background-color: #f0f0f0; }
+          .total { text-align: right; font-weight: bold; margin-top: 20px; }
+          .center { text-align: center; margin-top: 40px; }
+        </style>
+      </head>
+      <body>
+        <h2>TRƯỜNG MẦM NON ABC</h2>
+        <h3>HÓA ĐƯƠN THANH TOÁN</h3>
+
+        <p><strong>Mã hóa đơn:</strong> HD-${bill.month.replace("-", "")}</p>
+        <p><strong>Ngày:</strong> ${new Date().toLocaleDateString("vi-VN")}</p>
+        <p><strong>Học sinh:</strong> ${childInfo?.fullName || "---"}</p>
+        <p><strong>Lớp:</strong> ${childInfo?.className || "---"}</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Mục</th>
+              <th>Buổi</th>
+              <th>Giá</th>
+              <th>Thành tiền</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Học phí</td>
+              <td style="text-align: center;">1</td>
+              <td style="text-align: right;">${bill.classFee.toLocaleString()} đ</td>
+              <td style="text-align: right;">${bill.classFee.toLocaleString()} đ</td>
+            </tr>
+            <tr>
+              <td>Tiền ăn</td>
+              <td style="text-align: center;">${bill.details.attendedDays}</td>
+              <td style="text-align: right;">${bill.details.mealFeePerDay.toLocaleString()} đ</td>
+              <td style="text-align: right;">${bill.mealFees.toLocaleString()} đ</td>
+            </tr>
+            ${serviceRows}
+            ${eventRows}
+          </tbody>
+        </table>
+
+        <p class="total">TỔNG CỘNG: ${bill.total.toLocaleString()} đ</p>
+        <p class="total">Trạng thái: ${bill.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}</p>
+
+        <p class="center">Cảm ơn quý phụ huynh!</p>
+      </body>
+      </html>
+    `;
+
+    newWindow.document.write(content);
+    newWindow.document.close();
+    newWindow.focus();
+    newWindow.print();
+  };
 
   return (
     <BillContainer>
@@ -101,8 +200,7 @@ const StudentMonthlyBill = () => {
                               <tr key={`svc-${idx}`}>
                                 <td style={{ padding: "8px", border: "1px solid #ccc" }}>Dịch vụ</td>
                                 <td style={{ padding: "8px", border: "1px solid #ccc" }}>
-                                  {svc.serviceName}
-                                  {svc.sessionCount ? ` (${svc.sessionCount} buổi)` : ""}
+                                  {svc.serviceName}{svc.sessionCount ? ` (${svc.sessionCount} buổi)` : ""}
                                 </td>
                                 <td style={{ padding: "8px", border: "1px solid #ccc", textAlign: "right" }}>
                                   {svc.price.toLocaleString()} đ
@@ -120,6 +218,10 @@ const StudentMonthlyBill = () => {
                             ))}
                           </tbody>
                         </table>
+
+                        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                          <button onClick={() => handlePrintInvoice(bill)}>🖨️ In hóa đơn</button>
+                        </div>
                       </BillTableCell>
                     </BillTableRow>
                   </React.Fragment>

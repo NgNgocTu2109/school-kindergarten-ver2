@@ -114,13 +114,23 @@ export const searchChildByName = async (req, res, next) => {
 
     const children = await Child.find({
       fullName: { $regex: name, $options: "i" },
-    }).populate("classId", "grade");
+    }).populate("classId", "grade"); // Lấy đủ cả name (tên lớp)
 
-    res.status(200).json({ success: true, children });
+    // ✅ Gán thêm className để in ra
+    const childrenWithClassName = children.map(child => {
+      const childObj = child.toObject();
+      return {
+        ...childObj,
+        className: child.classId?.name || "---",
+      };
+    });
+
+    res.status(200).json({ success: true, children: childrenWithClassName });
   } catch (err) {
     next(err);
   }
 };
+
 
 // [GET] Lấy thông tin học sinh theo ID (dùng khi student đã đăng nhập)
 export const getChildById = async (req, res, next) => {

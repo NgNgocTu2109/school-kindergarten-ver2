@@ -108,10 +108,6 @@ const Sidebar = () => {
               <StyledLink to="/teacher/service-usage">Quản lý dịch vụ</StyledLink>
               </SidebarNavItem>
                 <SidebarNavItem>
-                    <SidebarIcon> <BsFileText /></SidebarIcon>
-                    <StyledLink to="/teacher/assignments">Bài tập</StyledLink>
-                </SidebarNavItem>
-                <SidebarNavItem>
                     <SidebarIcon> <BsChatDots /></SidebarIcon>
                     <StyledLink to="/teacher/communication">Thông báo</StyledLink>
                 </SidebarNavItem>

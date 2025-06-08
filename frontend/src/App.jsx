@@ -17,7 +17,6 @@ import Contact from './components/Contact';
 //import Admin Section
 import Classes from './pages/Admin/Classes';
 import Teachers from './pages/Admin/Teachers';
-import Assignments from './pages/Admin/Assignment';
 import Library from './pages/Admin/Library';
 import SettingsProfile from './pages/Admin/SettingsProfile';
 import Announcement from './pages/Admin/Announcement';
@@ -34,7 +33,6 @@ import ContactInbox from './pages/Admin/ContactInbox';
 
 
 //import Student Section
-import StudentAssignments from './pages/Students/Assignments';
 import LibrarySection from '../src/pages/Students/Library';
 import AnnouncementSection from './pages/Students/Announcement';
 import ProfileSection from './pages/Students/Profile';
@@ -51,7 +49,6 @@ import StudentEvents from "./pages/Students/StudentEvents";
 import ClassSection from './pages/Teachers/Classes';
 import TeacherProfileSection from './pages/Teachers/Profile';
 import CheckAnnouncementSection from './pages/Teachers/Announcement';
-import AssignmentSection from './pages/Teachers/Assignments';
 import Attendance from './pages/Teachers/Attendance';
 import TeacherMenu from './pages/Teachers/TeacherMenu';
 import TeacherMessages from './pages/Teachers/TeacherMessages';
@@ -85,7 +82,6 @@ function App() {
 {/*admin section */}
         <Route exact path='/admin/classes' element={<Classes/>} />
         <Route exact path='/admin/teachers' element={<Teachers/>} />
-        <Route exact path='/admin/assignments' element={<Assignments/>} />
         <Route exact path='/admin/library' element={<Library/>} />
         <Route exact path='/admin/communication' element={<Announcement/>} />
         <Route exact path='/admin/settings' element={<SettingsProfile/>} />
@@ -105,8 +101,7 @@ function App() {
 
 
 
-{/*student section */}
-        <Route exact path='/student/assignments' element={<StudentAssignments/>} />   
+{/*student section */}  
         <Route exact path="/student/library" element={<LibrarySection />} />
         <Route exact path='/student/communication' element={<AnnouncementSection/>} />
         <Route exact path='/student/settings' element={<ProfileSection/>} />
@@ -121,7 +116,6 @@ function App() {
 
   {/*teacher section */}
         <Route exact path='/teacher/classes' element={<ClassSection />} />
-        <Route exact path='/teacher/assignments' element={<AssignmentSection />} />
         <Route exact path='/teacher/communication' element={<CheckAnnouncementSection />} />
         <Route exact path='/teacher/settings' element={<TeacherProfileSection/>} />    
         <Route path="/teacher/attendance" element={<Attendance />} />

@@ -1,9 +1,9 @@
 import React from "react";
 import styled from "styled-components";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   BsFileText, BsJournalText, BsCartCheck, BsChatDots,
-  BsCalendarEvent, BsBook, BsCashStack, BsGear
+  BsCalendarEvent, BsBook, BsCashStack, BsGear, BsBoxArrowRight
 } from "react-icons/bs";
 
 // Styled-components
@@ -57,6 +57,26 @@ const NavItem = styled(Link)`
   }
 `;
 
+const LogoutItem = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  font-size: 18px;
+  color: white;
+  cursor: pointer;
+  border-bottom: 1px solid #34495e;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #34495e;
+  }
+
+  @media (max-width: 768px) {
+    justify-content: center;
+    padding: 12px;
+  }
+`;
+
 const SidebarIcon = styled.div`
   margin-right: 10px;
   font-size: 18px;
@@ -74,20 +94,21 @@ const SidebarText = styled.span`
   }
 `;
 
-// Component
 const Sidebar = () => {
+  const navigate = useNavigate();
   const studentUser = JSON.parse(localStorage.getItem("studentUser"));
   const childName = studentUser?.fullName || "Students";
+
+  const handleLogout = () => {
+    localStorage.removeItem("studentUser");
+    navigate("/choose-user");
+  };
 
   return (
     <SidebarContainer>
       <SidebarHeader>{childName}</SidebarHeader>
 
       <nav>
-        <NavItem to="/student/assignments">
-          <SidebarIcon><BsFileText /></SidebarIcon>
-          <SidebarText>Bài tập</SidebarText>
-        </NavItem>
         <NavItem to="/student/attendance">
           <SidebarIcon><BsJournalText /></SidebarIcon>
           <SidebarText>Nhật ký bé</SidebarText>
@@ -120,6 +141,11 @@ const Sidebar = () => {
           <SidebarIcon><BsGear /></SidebarIcon>
           <SidebarText>Thông tin</SidebarText>
         </NavItem>
+
+        <LogoutItem onClick={handleLogout}>
+          <SidebarIcon><BsBoxArrowRight /></SidebarIcon>
+          <SidebarText>Đăng xuất</SidebarText>
+        </LogoutItem>
       </nav>
     </SidebarContainer>
   );

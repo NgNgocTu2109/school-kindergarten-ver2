@@ -6,7 +6,6 @@ import { dbConnection } from "./database/dbConnection.js";
 
 // Import các router
 import teacherRouter from "./routers/teacherRouter.js";
-import assignmentRouter from "./routers/assignmentRouter.js";
 import announcementRouter from "./routers/announcementRouter.js";
 import classRouter from "./routers/classRouter.js";
 import libraryRouter from "./routers/libraryRouter.js";
@@ -62,7 +61,6 @@ app.use('/uploads', express.static('uploads'));
 
 // Các tuyến API
 app.use("/api/v1/teachers", teacherRouter);
-app.use("/api/v1/assignments", assignmentRouter);
 app.use("/api/v1/announcements", announcementRouter);
 app.use("/api/v1/class", classRouter);
 app.use("/api/v1/library", libraryRouter);
