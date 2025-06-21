@@ -1,11 +1,16 @@
 import { Attendance } from "../models/attendanceSchema.js";
 import { Tuition } from "../models/TuitionSchema.js";
-import { Child } from "../models/childSchema.js"; 
+import { Child } from "../models/childSchema.js";
 import { ServiceRegistration } from "../models/registrationSchema.js";
 import { Service } from "../models/serviceSchema.js";
 import { MonthlyBill } from "../models/MonthlyBillSchema.js";
 import { Event } from "../models/eventSchema.js";
 
+
+
+import mongoose from "mongoose";
+
+// Tạo hóa đơn tháng
 export const generateMonthlyBills = async (req, res) => {
   try {
     const { month, childId } = req.query;
@@ -13,13 +18,11 @@ export const generateMonthlyBills = async (req, res) => {
 
     const filter = childId ? { _id: childId } : {};
     const children = await Child.find(filter).populate("classId");
-
-    if (!children || children.length === 0) {
-      return res.status(404).json({ message: "Không tìm thấy học sinh" });
-    }
+    if (!children || children.length === 0) return res.status(404).json({ message: "Không tìm thấy học sinh" });
 
     const results = [];
     const startDate = new Date(`${month}-01`);
+    startDate.setHours(0, 0, 0, 0);
     const endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + 1);
     const formattedMonth = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, "0")}`;
@@ -31,7 +34,6 @@ export const generateMonthlyBills = async (req, res) => {
       const tuition = await Tuition.findOne({ classId });
       if (!tuition) continue;
 
-      // Tiền ăn
       const attendance = await Attendance.find({
         childId: child._id,
         status: "Có mặt",
@@ -40,63 +42,56 @@ export const generateMonthlyBills = async (req, res) => {
       const attendedDays = attendance.length;
       const mealFees = tuition.mealFeePerDay * attendedDays;
 
-      // Dịch vụ
-     // Dịch vụ
-const registrations = await ServiceRegistration.find({
-  childId: child._id,
-  createdAt: { $gte: startDate, $lt: endDate },
-}).populate("serviceId");
+      const registrations = await ServiceRegistration.find({
+        childId: child._id,
+        createdAt: { $gte: startDate, $lt: endDate },
+      }).populate("serviceId");
 
-// ✅ Lọc bỏ dịch vụ không hợp lệ
-const services = registrations
-  .map((r) => ({
-    serviceName: r.serviceId?.name || "",
-    price: r.serviceId?.price || 0,
-    sessionCount: r.serviceId?.sessionCount || null
-  }))
-  .filter((s) =>
-    s.serviceName &&
-    s.serviceName.trim() !== "" &&
-    s.serviceName.trim().toLowerCase() !== "không tên"
-  );
+      const services = registrations
+        .map((r) => ({
+          serviceName: r.serviceId?.name || "",
+          price: r.serviceId?.price || 0,
+          sessionCount: r.serviceId?.sessionCount || null,
+        }))
+        .filter((s) =>
+          s.serviceName &&
+          s.serviceName.trim() !== "" &&
+          s.serviceName.trim().toLowerCase() !== "không tên"
+        );
 
-const serviceFees = services.reduce((sum, s) => sum + s.price, 0);
+      const serviceFees = services.reduce((sum, s) => sum + s.price, 0);
 
-
-      // Sự kiện
-     const events = await Event.find({
-     date: { $gte: startDate, $lt: endDate },
-     eventHistory: {
-     $elemMatch: {
-     childId: child._id,
-     status: "registered"
-    }
-  }
-});
-
+      const events = await Event.find({
+        date: { $gte: startDate, $lt: endDate },
+        eventHistory: {
+          $elemMatch: {
+            childId: child._id,
+            status: "registered"
+          }
+        }
+      });
 
       const eventItems = events.map((e) => ({
         eventName: e.title,
         fee: e.fee || 0,
       }));
-      const eventFees = eventItems.reduce((sum, e) => sum + e.fee, 0); // ✅ Tổng tiền sự kiện
+      const eventFees = eventItems.reduce((sum, e) => sum + e.fee, 0);
 
-      // Tổng
       const total = tuition.monthlyFee + mealFees + serviceFees + eventFees;
 
-      // Xoá hóa đơn cũ
       await MonthlyBill.deleteOne({ studentId: child._id, month: formattedMonth });
 
-      // Tạo mới
       const bill = new MonthlyBill({
         studentId: child._id,
         month: formattedMonth,
         classFee: tuition.monthlyFee,
         serviceFees,
         mealFees,
-        eventFees, // ✅ Thêm trường này vào bill
+        eventFees,
         total,
         isPaid: false,
+        markedByStudent: false,
+        paymentMethod: null,
         details: {
           attendedDays,
           mealFeePerDay: tuition.mealFeePerDay,
@@ -119,35 +114,31 @@ const serviceFees = services.reduce((sum, s) => sum + s.price, 0);
   }
 };
 
-
-// [1] Lấy danh sách hóa đơn toàn bộ theo tháng (Admin)
+// Lấy danh sách hóa đơn theo tháng
 export const getAllBillsByMonth = async (req, res) => {
   try {
     const { month } = req.query;
     if (!month) return res.status(400).json({ message: "Thiếu tháng cần xem" });
 
     const bills = await MonthlyBill.find({ month }).populate("studentId", "fullName");
-
     res.status(200).json({ success: true, bills });
   } catch (err) {
     res.status(500).json({ message: "Lỗi khi lấy danh sách hóa đơn", error: err.message });
   }
 };
 
-// [2] Lấy hóa đơn của một trẻ (cho phụ huynh)
+// Lấy hóa đơn theo học sinh
 export const getBillsByStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
-
     const bills = await MonthlyBill.find({ studentId }).sort({ month: -1 });
-
     res.status(200).json({ success: true, bills });
   } catch (err) {
     res.status(500).json({ message: "Lỗi khi lấy hóa đơn học sinh", error: err.message });
   }
 };
 
-// Cập nhật trạng thái thanh toán
+// Admin cập nhật trạng thái thanh toán
 export const toggleBillPaidStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -155,31 +146,69 @@ export const toggleBillPaidStatus = async (req, res) => {
 
     const updated = await MonthlyBill.findByIdAndUpdate(
       id,
-      { isPaid },
+      { isPaid, markedByStudent: false },
       { new: true }
     );
 
     if (!updated) return res.status(404).json({ success: false, message: "Không tìm thấy hóa đơn" });
-
     res.status(200).json({ success: true, message: "Đã cập nhật trạng thái", bill: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: "Lỗi server", error: err.message });
   }
 };
 
-// [3] Lấy hóa đơn theo token của học sinh (không cần truyền studentId)
+// Học sinh xem hóa đơn của chính mình
 export const getBillsForLoggedStudent = async (req, res) => {
   try {
-    const studentId = req.childId; // từ middleware verifyStudentToken
-
+    const studentId = req.childId;
     const bills = await MonthlyBill.find({ studentId }).sort({ month: -1 });
-
     res.status(200).json({ success: true, bills });
   } catch (err) {
-    res.status(500).json({
-      message: "Lỗi khi lấy hóa đơn học sinh từ token",
-      error: err.message
-    });
+    res.status(500).json({ message: "Lỗi khi lấy hóa đơn học sinh từ token", error: err.message });
   }
 };
 
+// Học sinh xác nhận đã thanh toán
+export const markPaidByStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentMethod } = req.body;
+
+    if (!req.childId) {
+      return res.status(401).json({ success: false, message: "Thiếu thông tin học sinh từ token" });
+    }
+
+    const bill = await MonthlyBill.findById(id);
+    if (!bill) return res.status(404).json({ success: false, message: "Không tìm thấy hóa đơn" });
+
+    if (bill.studentId.toString() !== req.childId.toString()) {
+      return res.status(403).json({ success: false, message: "Không có quyền xác nhận hóa đơn này" });
+    }
+
+    bill.markedByStudent = true;
+    bill.paymentMethod = paymentMethod || null;
+
+    // ✅ Thêm phần lưu ảnh nếu có file
+    if (req.file) {
+      bill.receiptImage = `/uploads/${req.file.filename}`;
+    }
+
+    await bill.save();
+
+    res.status(200).json({ success: true, message: "Học sinh đã xác nhận thanh toán", bill });
+  } catch (err) {
+    console.error("❌ Lỗi markPaidByStudent:", err);
+    res.status(500).json({ message: "Lỗi khi xác nhận thanh toán", error: err.message });
+  }
+};
+
+// hóa đơn theo ID của bé
+export const getBillsByChildId = async (req, res, next) => {
+  const { childId } = req.params;
+  try {
+    const bills = await MonthlyBill.find({ studentId: new mongoose.Types.ObjectId(childId) }).sort({ month: -1 });
+    res.json({ success: true, bills });
+  } catch (err) {
+    next(err);
+  }
+};

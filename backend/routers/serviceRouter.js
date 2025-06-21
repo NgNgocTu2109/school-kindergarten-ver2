@@ -7,6 +7,7 @@ import {
   deleteService,
   recordServiceUsage,
   getServiceUsageByChild,
+  getServiceUsageHistory
 } from "../controllers/serviceController.js";
 import { verifyStudentToken } from "../middlewares/verifyStudentToken.js";
 
@@ -31,5 +32,7 @@ router.get("/usage", verifyStudentToken, getServiceUsageByChild);
 // === Giáo viên gửi thủ công childId (không cần token)
 router.post("/:serviceId/usage-teacher", upload.single("image"), recordServiceUsage);
 router.get("/usage/:childId", getServiceUsageByChild);
+
+router.get("/usage-history", getServiceUsageHistory);
 
 export default router;

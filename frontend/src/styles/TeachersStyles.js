@@ -46,10 +46,6 @@ export const TeacherCard = styled.div`
 
 export const AddTeacherForm = styled.form`
   margin-bottom: 30px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  justify-content: center;
 `;
 
 export const AddTeacherInput = styled.input`
@@ -117,4 +113,43 @@ export const ButtonSave = styled.button`
   &:hover {
     background: #43a047;
   }
+`;
+
+
+// ✅ BỔ SUNG MỚI
+
+export const AddTeacherRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: center;
+
+  & > * {
+    flex: 1 1 200px;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    & > * {
+      width: 100%;
+    }
+  }
+`;
+
+export const FileInput = styled.input`
+  padding: 7px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: white;
+`;
+
+export const Avatar = styled.img`
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto 12px auto;
+  border: 3px solid #4CAF50;
 `;

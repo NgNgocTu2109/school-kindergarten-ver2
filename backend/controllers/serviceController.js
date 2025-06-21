@@ -186,3 +186,35 @@ export const getServiceUsageByChild = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// lịch sử sử dụng dịch vụ của bé theo childId
+export const getServiceUsageHistory = async (req, res, next) => {
+  const { childId } = req.query;
+  try {
+    if (!childId) return handleValidationError("Thiếu childId!", 400);
+
+    const services = await Service.find({
+      "usageRecords.childId": childId,
+    });
+
+    // Lọc và gom lại usageRecords theo ngày
+    const history = [];
+    for (const service of services) {
+      const used = service.usageRecords.filter(r => r.childId.toString() === childId);
+      used.forEach(u => {
+        history.push({
+          serviceName: service.name,
+          unit: service.unit,
+          price: service.price,
+          date: u.date,
+          image: u.image,
+          note: u.note,
+        });
+      });
+    }
+
+    res.json({ success: true, history });
+  } catch (err) {
+    next(err);
+  }
+};

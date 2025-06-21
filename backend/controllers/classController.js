@@ -88,3 +88,16 @@ export const updateClassStatistics = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getClassById = async (req, res) => {
+  try {
+    const classId = req.params.id;
+    const found = await Class.findById(classId);
+    if (!found) return res.status(404).json({ message: 'Không tìm thấy lớp học' });
+
+    res.status(200).json({ success: true, class: found });
+  } catch (err) {
+    console.error("Lỗi getClassById:", err);
+    res.status(500).json({ message: "Lỗi server khi lấy lớp học" });
+  }
+};

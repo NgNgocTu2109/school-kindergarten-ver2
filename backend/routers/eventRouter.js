@@ -10,7 +10,8 @@ import {
   registerEventParticipant,
   getEventParticipants,
   toggleEventRegistration,
-  getStudentRegisteredEvents
+  getStudentRegisteredEvents,
+  getEventHistoryByChild
 } from "../controllers/eventController.js";
 
 const router = express.Router();
@@ -54,5 +55,9 @@ router.get("/:eventId/participants", getEventParticipants);
 router.post("/:eventId/toggle", toggleEventRegistration);
 
 router.get("/registered", getStudentRegisteredEvents);
+
+// Lấy lịch sử sự kiện của học sinh
+router.get("/history", getEventHistoryByChild);
+
 
 export default router;

@@ -18,25 +18,46 @@ const StudentAttendance = () => {
   const childId = studentUser?.childId || "";
   const childName = studentUser?.fullName || "";
 
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [attendance, setAttendance] = useState(null);
-  const [menu, setMenu] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [weekData, setWeekData] = useState([]);
 
-  const fetchDiary = async () => {
-    try {
-      if (!childId || !date) return;
+  const getVietnameseDay = (dateStr) => {
+    const days = ["Chủ nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
+    return days[new Date(dateStr).getDay()];
+  };
 
-      const res = await axios.get(`http://localhost:4000/api/v1/attendance/diary/${childId}?date=${date}`);
-      setAttendance(res.data.attendance || null);
-      setMenu(res.data.menu || null);
-    } catch (err) {
-      console.error('Lỗi lấy nhật ký bé:', err);
+  const getOrderedWeek = (startDateStr) => {
+    const date = new Date(startDateStr);
+    const day = date.getDay();
+    const monday = new Date(date);
+    monday.setDate(date.getDate() - (day === 0 ? 6 : day - 1));
+
+    const ordered = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      ordered.push(d.toISOString().split('T')[0]);
     }
+    return ordered;
   };
 
   useEffect(() => {
-    fetchDiary();
-  }, [date]);
+    const fetchWeekData = async () => {
+      const start = getOrderedWeek(selectedDate)[0];
+      const end = getOrderedWeek(selectedDate)[6];
+      try {
+        const res = await axios.get(`http://localhost:4000/api/v1/attendance/weekly?childId=${childId}&from=${start}&to=${end}`);
+        setWeekData(res.data.weeklyDiary || []);
+      } catch (err) {
+        console.error('Lỗi khi lấy dữ liệu tuần:', err);
+      }
+    };
+    if (childId && selectedDate) {
+      fetchWeekData();
+    }
+  }, [selectedDate]);
+
+  const orderedDates = getOrderedWeek(selectedDate);
 
   return (
     <AttendanceContainer>
@@ -47,11 +68,10 @@ const StudentAttendance = () => {
             Nhật ký của bé {childName ? `– ${childName}` : ""}
           </AttendanceHeader>
 
-          {/* Chọn ngày */}
           <input
             type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
             max={new Date().toISOString().split("T")[0]}
             style={{
               padding: "6px 12px",
@@ -62,75 +82,70 @@ const StudentAttendance = () => {
             }}
           />
 
-          {/* --- Điểm danh --- */}
-          <h4 style={{ marginTop: "20px" }}>Trạng thái điểm danh</h4>
+          <h4 style={{ marginTop: "20px" }}>📅 Nhật ký theo tuần</h4>
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell>Thứ</TableCell>
                 <TableCell>Ngày</TableCell>
                 <TableCell>Trạng thái</TableCell>
                 <TableCell>Ăn</TableCell>
                 <TableCell>Ngủ</TableCell>
                 <TableCell>Nhận xét</TableCell>
-                <TableCell>Ghi chú</TableCell>
                 <TableCell>Ảnh minh chứng</TableCell>
+                <TableCell>Bữa sáng</TableCell>
+                <TableCell>Bữa trưa</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {attendance ? (
-                <TableRow>
-                  <TableCell>{new Date(attendance.date).toLocaleDateString()}</TableCell>
-                  <TableCell>{attendance.status}</TableCell>
-                  <TableCell>{attendance.eat || "-"}</TableCell>
-                  <TableCell>{attendance.sleep || "-"}</TableCell>
-                  <TableCell>{attendance.comment || "-"}</TableCell>
-                  <TableCell>{attendance.note || "-"}</TableCell>
-                  <TableCell>
-                    {attendance.imageUrl ? (
-                      <img
-                        src={attendance.imageUrl.startsWith("http") ? attendance.imageUrl : `http://localhost:4000/${attendance.imageUrl}`}
-                        alt="Ảnh điểm danh"
-                        style={{ width: "100px", borderRadius: "6px" }}
-                      />
-                    ) : (
-                      <span style={{ color: "#888" }}>Không có ảnh</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                <TableRow>
-                  <TableCell colSpan="7">Chưa có dữ liệu điểm danh ngày này</TableCell>
-                </TableRow>
-              )}
+              {orderedDates.map((dateStr) => {
+                const item = weekData.find(d => d.date === dateStr);
+                return (
+                  <TableRow key={dateStr}>
+                    <TableCell>{getVietnameseDay(dateStr)}</TableCell>
+                    <TableCell>{dateStr.split('-').reverse().join('/')}</TableCell>
+                    <TableCell>{item?.status || '-'}</TableCell>
+                    <TableCell>{item?.eat || '-'}</TableCell>
+                    <TableCell>{item?.sleep || '-'}</TableCell>
+                    <TableCell>{item?.comment || '-'}</TableCell>
+                    <TableCell>
+                      {item?.image ? (
+                        <img
+                          src={item.image.startsWith('http') ? item.image : `http://localhost:4000/${item.image}`}
+                          alt="minh chứng"
+                          style={{ width: '80px', borderRadius: '6px' }}
+                        />
+                      ) : (
+                        <span style={{ color: '#888' }}>Không có ảnh</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {item?.menu?.breakfast ? (
+                        <>
+                          <img
+                            src={item.menu.breakfast.imageUrl}
+                            alt={item.menu.breakfast.name}
+                            style={{ width: '80px', borderRadius: '6px' }}
+                          /><br />
+                          <div style={{ fontWeight: 'bold' }}>{item.menu.breakfast.name}</div>
+                        </>
+                      ) : '-'}</TableCell>
+                    <TableCell>
+                      {item?.menu?.lunch ? (
+                        <>
+                          <img
+                            src={item.menu.lunch.imageUrl}
+                            alt={item.menu.lunch.name}
+                            style={{ width: '80px', borderRadius: '6px' }}
+                          /><br />
+                          <div style={{ fontWeight: 'bold' }}>{item.menu.lunch.name}</div>
+                        </>
+                      ) : '-'}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
-
-          {/* --- Thực đơn --- */}
-          <h4 style={{ marginTop: "40px" }}>Thực đơn của bé</h4>
-          {menu ? (
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell style={{ textAlign: "center", fontWeight: "bold" }}>Bữa sáng</TableCell>
-                  <TableCell style={{ textAlign: "center", fontWeight: "bold" }}>Bữa trưa</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                <TableRow>
-                  <TableCell style={{ textAlign: "center" }}>
-                    <img src={menu.breakfast.imageUrl} alt={menu.breakfast.name} style={{ width: "100%", maxWidth: "120px", borderRadius: "8px" }} /><br />
-                    <div style={{ fontSize: "16px", fontWeight: "bold", marginTop: "6px" }}>{menu.breakfast.name}</div>
-                  </TableCell>
-                  <TableCell style={{ textAlign: "center" }}>
-                    <img src={menu.lunch.imageUrl} alt={menu.lunch.name} style={{ width: "100%", maxWidth: "120px", borderRadius: "8px" }} /><br />
-                    <div style={{ fontSize: "16px", fontWeight: "bold", marginTop: "6px" }}>{menu.lunch.name}</div>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          ) : (
-            <p>Chưa có thực đơn cho ngày này.</p>
-          )}
         </AttendanceContent>
       </Content>
     </AttendanceContainer>

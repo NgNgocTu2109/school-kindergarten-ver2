@@ -93,7 +93,9 @@ const ContactPage = () => {
   return (
     <>
       <Navbar>
-        <Logo src={bg1} alt="Logo" />
+        <Link to="/">
+        <img src="/logo.jpg" alt="logo" style={{ height: "40px", objectFit: "contain" }} />
+        </Link>
         <NavigationLinks>
           <NavLink as={Link} to="/about">Giới thiệu</NavLink>
           <NavLink as={Link} to="/news">Bản tin</NavLink>

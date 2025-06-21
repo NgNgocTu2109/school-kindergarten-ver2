@@ -10,6 +10,7 @@ import TeacherSign from './components/TeacherSignIn';
 import About from './components/About'; // hoặc '../src/components/About' nếu bạn để ở đó
 import News from './components/News';
 import Contact from './components/Contact';
+import Partners from './components/Partners';
 
 
 
@@ -27,6 +28,8 @@ import ServiceManagement from './pages/Admin/ServiceManagement';
 import MonthlyBill from './pages/Admin/MonthlyBill';
 import AdminEventManager from "./pages/Admin/AdminEventManager";
 import ContactInbox from './pages/Admin/ContactInbox';
+import AdminStudentHistory from './pages/Admin/AdminStudentHistory';
+
 
 
 
@@ -41,7 +44,7 @@ import StudentRegisterService from './pages/Students/StudentRegisterService';
 import StudentMonthlyBill from './pages/Students/StudentMonthlyBill';
 import StudentMessages from './pages/Students/StudentMessages';
 import StudentEvents from "./pages/Students/StudentEvents";
-
+import StudentFakePayment from './pages/Students/StudentFakePayment'; //
 
 
 
@@ -67,7 +70,7 @@ function App() {
         <Route path='/about' element={<About />} />
         <Route path='/news' element={<News />} />
         <Route path="/contact" element={<Contact key={window.location.pathname} />} />
-
+        <Route path="/partners" element={<Partners />} />
 
 
         
@@ -92,6 +95,8 @@ function App() {
         <Route exact path="/admin/fees" element={<MonthlyBill />} />
         <Route exact path="/admin/events" element={<AdminEventManager />} />
         <Route exact path="/admin/contact-inbox" element={<ContactInbox />} />
+        <Route exact path="/admin/student-history" element={<AdminStudentHistory />} />
+
 
 
 
@@ -110,7 +115,7 @@ function App() {
         <Route path="/student/bills" element={<StudentMonthlyBill />} />
         <Route exact path="/student/messages" element={<StudentMessages />} />
         <Route path="/student/events" element={<StudentEvents />} />
-
+        <Route path="/student/payment/:billId" element={<StudentFakePayment />} />
 
   
 

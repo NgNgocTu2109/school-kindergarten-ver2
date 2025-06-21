@@ -41,13 +41,12 @@ const Home = () => {
   return (
     <>
       <Navbar>
-        <Logo src={bg1} alt="Logo" />
+        <img src="/logo.jpg" alt="logo" style={{ height: "40px", objectFit: "contain" }} />
         <NavigationLinks>
           <NavLink as={Link} to="/about">Giới thiệu</NavLink>
           <NavLink as={Link} to="/news">Bản tin</NavLink>
           <NavLink as={Link} to="/contact">Liên hệ</NavLink>
-          <NavLink href="/admin/students">Trẻ nhỏ</NavLink>
-          <NavLink href="/admin/teachers">Giáo viên</NavLink>
+          <NavLink as={Link} to="/partners">Đối tác</NavLink>
 
         </NavigationLinks>
         <ButtonsContainer>
@@ -59,7 +58,7 @@ const Home = () => {
       {/* Phần đầu (GIỮ NGUYÊN nền xanh) */}
       <HomeContainer>
         <SchoolInfo>
-          <Title> Hệ thống Quản lý Trường học</Title>
+          <Title> Hệ thống Quản lý Trường mầm non BISTAR</Title>
           <LoremTextContainer>
             <p>"Hệ thống quản lý trường học giúp tổ chức và quản lý học sinh, giáo viên một cách hiệu quả. Chúng tôi cam kết mang lại trải nghiệm tốt nhất cho người dùng."</p>
           </LoremTextContainer>

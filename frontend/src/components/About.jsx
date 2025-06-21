@@ -29,13 +29,14 @@ const About = () => {
   return (
     <>
       <Navbar>
-        <Logo src={bg1} alt="Logo" />
+        <Link to="/">
+        <img src="/logo.jpg" alt="logo" style={{ height: "40px", objectFit: "contain" }} />
+        </Link>
         <NavigationLinks>
           <NavLink as={Link} to="/about">Giới thiệu</NavLink>
           <NavLink as={Link} to="/news">Bản tin</NavLink>
           <NavLink href="#">Liên hệ</NavLink>
-          <NavLink href="/admin/students">Trẻ nhỏ</NavLink>
-          <NavLink href="/admin/teachers">Giáo viên</NavLink>
+          <NavLink as={Link} to="/partners">Đối tác</NavLink>
         </NavigationLinks>
         <ButtonsContainer>
           <LoginButton onClick={handleLoginClick}>Đăng nhập</LoginButton>

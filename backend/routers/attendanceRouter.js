@@ -6,6 +6,8 @@ import {
   getAttendanceByChild,
   getDiaryByChildAndDate,
   getAttendanceHistory, //  bổ sung
+  getWeeklyDiaryByChild,
+  getAttendanceHistoryByChild
 } from "../controllers/attendanceController.js";
 
 const router = express.Router();
@@ -31,5 +33,11 @@ router.get("/diary/:childId", getDiaryByChildAndDate);
 
 //  GET: lịch sử điểm danh theo lớp và khoảng ngày
 router.get("/history", getAttendanceHistory);
+
+router.get("/weekly", getWeeklyDiaryByChild);
+
+// ✅ GET: lịch sử điểm danh theo học sinh
+router.get("/child-history", getAttendanceHistoryByChild);
+
 
 export default router;

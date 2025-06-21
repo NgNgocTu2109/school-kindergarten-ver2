@@ -42,16 +42,9 @@ export const MenuHeader = styled.h2`
 
 export const MenuForm = styled.form`
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 20px;
-  align-items: center;
   margin-bottom: 24px;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-  }
 `;
 
 export const MenuSelect = styled.select`
@@ -66,8 +59,9 @@ export const MenuSelect = styled.select`
 export const MenuInput = styled.input`
   padding: 10px;
   font-size: 16px;
-  flex: 1;
-
+  width: 250px;
+  max-width: 100%;
+  
   @media (max-width: 768px) {
     width: 100%;
   }
@@ -81,6 +75,7 @@ export const MenuButton = styled.button`
   font-weight: bold;
   border-radius: 6px;
   cursor: pointer;
+  align-self: center;
 
   &:hover {
     background-color: #218838;
@@ -123,9 +118,10 @@ export const TableBody = styled.tbody``;
 
 export const MenuRow = styled.div`
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 
   @media (max-width: 768px) {
     flex-direction: column;
@@ -135,7 +131,7 @@ export const MenuRow = styled.div`
 `;
 
 export const MenuLabel = styled.label`
-  width: 100px;
+  width: 140px;
   font-weight: bold;
 
   @media (max-width: 768px) {

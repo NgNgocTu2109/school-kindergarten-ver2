@@ -288,7 +288,7 @@ const Attendance = () => {
           <h4 style={{ marginTop: "40px" }}>Lịch sử điểm danh gần đây</h4>
           <Table>
             <TableHead>
-              <TableRow>
+              <TableRow style={{ backgroundColor: "#008CFF", color: "white" }}>
                 <TableCell>Ngày</TableCell>
                 <TableCell>Họ tên</TableCell>
                 <TableCell>Trạng thái</TableCell>

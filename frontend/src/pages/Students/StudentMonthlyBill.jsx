@@ -1,6 +1,7 @@
-// src/pages/Students/StudentMonthlyBill.jsx
+// Import thư viện
 import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   BillContainer,
@@ -17,7 +18,13 @@ import {
 const StudentMonthlyBill = () => {
   const [bills, setBills] = useState([]);
   const [childInfo, setChildInfo] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  });
+
   const token = localStorage.getItem("studentToken");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,8 +52,19 @@ const StudentMonthlyBill = () => {
     if (token) fetchData();
   }, [token]);
 
+  const goToPayment = (billId) => {
+    navigate(`/student/payment/${billId}`);
+  };
+
+  const getPaymentMethodLabel = (method) => {
+    if (method === "cash") return "\ud83d\udcb5 Tiền mặt tại trường";
+    if (method === "qr") return "\ud83c\udfe6 Chuyển khoản QR";
+    return "--";
+  };
+
   const handlePrintInvoice = (bill) => {
     const newWindow = window.open("", "_blank");
+    if (!newWindow) return;
 
     const serviceRows = bill.details.services?.map((svc) => {
       const buoi = svc.sessionCount || 1;
@@ -85,13 +103,14 @@ const StudentMonthlyBill = () => {
         </style>
       </head>
       <body>
-        <h2>TRƯỜNG MẦM NON ABC</h2>
-        <h3>HÓA ĐƯƠN THANH TOÁN</h3>
+        <h2>TRƯỜNG MẦM NON BISTAR</h2>
+        <h3>HÓA ĐƠN THANH TOÁN</h3>
 
         <p><strong>Mã hóa đơn:</strong> HD-${bill.month.replace("-", "")}</p>
         <p><strong>Ngày:</strong> ${new Date().toLocaleDateString("vi-VN")}</p>
         <p><strong>Học sinh:</strong> ${childInfo?.fullName || "---"}</p>
         <p><strong>Lớp:</strong> ${childInfo?.className || "---"}</p>
+        <p><strong>Hình thức thanh toán:</strong> ${getPaymentMethodLabel(bill.paymentMethod)}</p>
 
         <table>
           <thead>
@@ -122,7 +141,6 @@ const StudentMonthlyBill = () => {
 
         <p class="total">TỔNG CỘNG: ${bill.total.toLocaleString()} đ</p>
         <p class="total">Trạng thái: ${bill.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}</p>
-
         <p class="center">Cảm ơn quý phụ huynh!</p>
       </body>
       </html>
@@ -141,6 +159,16 @@ const StudentMonthlyBill = () => {
         <BillFormWrapper>
           <BillTitle>Hóa đơn của bé</BillTitle>
 
+          <div style={{ marginBottom: "16px" }}>
+            <label><strong>Chọn tháng:</strong></label>{" "}
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              style={{ padding: "6px", marginLeft: "8px" }}
+            />
+          </div>
+
           <BillTable>
             <thead>
               <BillTableRow>
@@ -154,12 +182,12 @@ const StudentMonthlyBill = () => {
               </BillTableRow>
             </thead>
             <BillTableBody>
-              {bills.length === 0 ? (
+              {bills.filter((b) => b.month === selectedMonth).length === 0 ? (
                 <BillTableRow>
-                  <BillTableCell colSpan="7">Chưa có dữ liệu hóa đơn cho học sinh này.</BillTableCell>
+                  <BillTableCell colSpan="7">Không có hóa đơn cho tháng này.</BillTableCell>
                 </BillTableRow>
               ) : (
-                bills.map((bill) => (
+                bills.filter((b) => b.month === selectedMonth).map((bill) => (
                   <React.Fragment key={bill._id}>
                     <BillTableRow>
                       <BillTableCell>{bill.month}</BillTableCell>
@@ -167,60 +195,48 @@ const StudentMonthlyBill = () => {
                       <BillTableCell>{bill.serviceFees.toLocaleString()} đ</BillTableCell>
                       <BillTableCell>{bill.mealFees.toLocaleString()} đ</BillTableCell>
                       <BillTableCell>{(bill.eventFees || 0).toLocaleString()} đ</BillTableCell>
-                      <BillTableCell style={{ fontWeight: "bold", color: "red" }}>
-                        {bill.total.toLocaleString()} đ
-                      </BillTableCell>
-                      <BillTableCell style={{ color: bill.isPaid ? "green" : "orange" }}>
-                        {bill.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
-                      </BillTableCell>
+                      <BillTableCell style={{ fontWeight: "bold", color: "red" }}>{bill.total.toLocaleString()} đ</BillTableCell>
+                      <BillTableCell>{bill.isPaid ? "Đã thanh toán" : bill.markedByStudent ? "⏳ Chờ xác nhận" : "Chưa thanh toán"}</BillTableCell>
                     </BillTableRow>
 
                     <BillTableRow>
-                      <BillTableCell colSpan="7" style={{ paddingTop: "16px" }}>
-                        <h4 style={{ margin: "10px 0", fontWeight: "bold" }}>📋 Chi tiết thanh toán</h4>
-                        <table style={{ width: "100%", borderCollapse: "collapse", background: "#fdfdfd" }}>
-                          <thead>
-                            <tr style={{ background: "#e9ecef" }}>
-                              <th style={{ padding: "8px", border: "1px solid #ccc", textAlign: "left" }}>Hạng mục</th>
-                              <th style={{ padding: "8px", border: "1px solid #ccc", textAlign: "left" }}>Chi tiết</th>
-                              <th style={{ padding: "8px", border: "1px solid #ccc", textAlign: "right" }}>Số tiền</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td style={{ padding: "8px", border: "1px solid #ccc" }}>Tiền ăn</td>
-                              <td style={{ padding: "8px", border: "1px solid #ccc" }}>
-                                {bill.details.attendedDays} ngày × {bill.details.mealFeePerDay.toLocaleString()} đ
-                              </td>
-                              <td style={{ padding: "8px", border: "1px solid #ccc", textAlign: "right" }}>
-                                {bill.mealFees.toLocaleString()} đ
-                              </td>
-                            </tr>
-                            {bill.details.services?.map((svc, idx) => (
-                              <tr key={`svc-${idx}`}>
-                                <td style={{ padding: "8px", border: "1px solid #ccc" }}>Dịch vụ</td>
-                                <td style={{ padding: "8px", border: "1px solid #ccc" }}>
-                                  {svc.serviceName}{svc.sessionCount ? ` (${svc.sessionCount} buổi)` : ""}
-                                </td>
-                                <td style={{ padding: "8px", border: "1px solid #ccc", textAlign: "right" }}>
-                                  {svc.price.toLocaleString()} đ
-                                </td>
+                      <BillTableCell colSpan="7">
+                        <div style={{ marginTop: "12px" }}>
+                          <h4 style={{ fontWeight: "bold", marginBottom: "12px" }}>📋 Chi tiết thanh toán</h4>
+                          <table style={{ width: "100%", borderCollapse: "collapse", background: "#fdfdfd" }}>
+                            <thead>
+                              <tr style={{ background: "#e9ecef" }}>
+                                <th style={{ padding: "8px", border: "1px solid #ccc" }}>Hạng mục</th>
+                                <th style={{ padding: "8px", border: "1px solid #ccc" }}>Chi tiết</th>
+                                <th style={{ padding: "8px", border: "1px solid #ccc", textAlign: "right" }}>Số tiền</th>
                               </tr>
-                            ))}
-                            {bill.details.events?.map((evt, idx) => (
-                              <tr key={`evt-${idx}`}>
-                                <td style={{ padding: "8px", border: "1px solid #ccc" }}>Sự kiện</td>
-                                <td style={{ padding: "8px", border: "1px solid #ccc" }}>{evt.eventName}</td>
-                                <td style={{ padding: "8px", border: "1px solid #ccc", textAlign: "right" }}>
-                                  {evt.fee.toLocaleString()} đ
-                                </td>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td style={{ padding: "8px", border: "1px solid #ccc" }}>Tiền ăn</td>
+                                <td style={{ padding: "8px", border: "1px solid #ccc" }}>{bill.details.attendedDays} ngày × {bill.details.mealFeePerDay.toLocaleString()} đ</td>
+                                <td style={{ padding: "8px", border: "1px solid #ccc", textAlign: "right" }}>{bill.mealFees.toLocaleString()} đ</td>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-
-                        <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                          <button onClick={() => handlePrintInvoice(bill)}>🖨️ In hóa đơn</button>
+                              {bill.details.services?.map((svc, idx) => (
+                                <tr key={`svc-${idx}`}>
+                                  <td style={{ padding: "8px", border: "1px solid #ccc" }}>Dịch vụ</td>
+                                  <td style={{ padding: "8px", border: "1px solid #ccc" }}>{svc.serviceName}{svc.sessionCount ? ` (${svc.sessionCount} buổi)` : ""}</td>
+                                  <td style={{ padding: "8px", border: "1px solid #ccc", textAlign: "right" }}>{svc.price.toLocaleString()} đ</td>
+                                </tr>
+                              ))}
+                              {bill.details.events?.map((evt, idx) => (
+                                <tr key={`evt-${idx}`}>
+                                  <td style={{ padding: "8px", border: "1px solid #ccc" }}>Sự kiện</td>
+                                  <td style={{ padding: "8px", border: "1px solid #ccc" }}>{evt.eventName}</td>
+                                  <td style={{ padding: "8px", border: "1px solid #ccc", textAlign: "right" }}>{evt.fee.toLocaleString()} đ</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          <div style={{ textAlign: "center", marginTop: "20px" }}>
+                            <button onClick={() => goToPayment(bill._id)}>💰 Thanh toán</button>
+                            <button onClick={() => handlePrintInvoice(bill)}>🖨️ In hóa đơn</button>
+                          </div>
                         </div>
                       </BillTableCell>
                     </BillTableRow>

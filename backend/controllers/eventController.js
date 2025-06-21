@@ -209,3 +209,19 @@ export const getStudentRegisteredEvents = async (req, res) => {
   }
 };
 
+// sự kiện lịch sử theo childId
+export const getEventHistoryByChild = async (req, res, next) => {
+  const { childId } = req.query;
+  try {
+    if (!childId) return handleValidationError("Thiếu childId!", 400);
+
+    const events = await Event.find({
+      eventHistory: { $elemMatch: { childId, status: 'registered' } }
+    }).sort({ date: -1 });
+
+    // Có thể format lại nếu cần
+    res.json({ success: true, events });
+  } catch (err) {
+    next(err);
+  }
+};

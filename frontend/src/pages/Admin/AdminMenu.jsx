@@ -144,8 +144,8 @@ const AdminMenu = () => {
           <MenuHeader>Quản lý Thực đơn</MenuHeader>
           <MenuForm onSubmit={handleSubmit}>
             <MenuRow>
-              <MenuLabel>Chọn lớp:</MenuLabel>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+              <MenuLabel>Chọn khối áp dụng:</MenuLabel>
+              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                 <label style={{ fontWeight: "bold" }}>
                   <input
                     type="checkbox"
@@ -153,6 +153,12 @@ const AdminMenu = () => {
                     onChange={handleSelectAll}
                   /> Chọn tất cả
                 </label>
+              </div>
+            </MenuRow>
+
+            <MenuRow>
+              <MenuLabel>Chọn lớp áp dụng:</MenuLabel>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
                 {classes.map((cls) => (
                   <label key={cls._id}>
                     <input
@@ -170,6 +176,10 @@ const AdminMenu = () => {
                   </label>
                 ))}
               </div>
+            </MenuRow>
+
+            <MenuRow>
+              <MenuLabel>Ngày áp dụng:</MenuLabel>
               <MenuInput type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </MenuRow>
 
@@ -187,10 +197,13 @@ const AdminMenu = () => {
               {lunchImage && <img src={lunchImage} alt="Bữa trưa" width="80" />}
             </MenuRow>
 
-            <MenuButton type="submit">Lưu thực đơn</MenuButton>
+            <MenuRow>
+              <div style={{ width: "100%", display: "flex", justifyContent: "center", marginTop: "16px" }}>
+                <MenuButton type="submit">Lưu thực đơn</MenuButton>
+              </div>
+            </MenuRow>
           </MenuForm>
 
-          {/* Lịch sử thực đơn */}
           <h4 style={{ marginTop: "40px" }}>Lịch sử thực đơn theo lớp:</h4>
           <MenuSelect value={historyClassId} onChange={(e) => setHistoryClassId(e.target.value)}>
             <option value="">-- Chọn lớp để xem lịch sử --</option>

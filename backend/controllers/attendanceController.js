@@ -2,6 +2,8 @@ import { Attendance } from "../models/attendanceSchema.js";
 import { Child } from "../models/childSchema.js";
 import { Menu } from "../models/menuSchema.js";
 import { handleValidationError } from "../middlewares/errorHandler.js";
+import mongoose from "mongoose";
+
 
 // [POST] Tạo / cập nhật điểm danh + nhật ký + ảnh
 export const markAttendance = async (req, res, next) => {
@@ -172,3 +174,97 @@ export const getAttendanceHistory = async (req, res, next) => {
     next(err);
   }
 };
+
+// ✅ [GET] /attendance/weekly?childId=xxx&from=yyyy-mm-dd&to=yyyy-mm-dd
+export const getWeeklyDiaryByChild = async (req, res, next) => {
+  const { childId, from, to } = req.query;
+
+  try {
+    if (!childId || !from || !to) {
+      return handleValidationError("Thiếu childId hoặc khoảng ngày!", 400);
+    }
+
+    // Tìm học sinh và classId
+    const child = await Child.findById(childId);
+    if (!child) {
+      return handleValidationError("Không tìm thấy học sinh!", 404);
+    }
+    const classId = child.classId?.toString();
+
+    // Tạo mảng 7 ngày từ from → to
+    const start = new Date(from);
+    const end = new Date(to);
+    const dayList = [];
+
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const currentDate = new Date(d); // clone
+      currentDate.setHours(0, 0, 0, 0);
+      dayList.push(new Date(currentDate));
+    }
+
+    // Lấy attendance trong tuần
+    const attendanceRecords = await Attendance.find({
+      childId,
+      date: { $gte: start, $lte: end },
+    });
+
+    // Lấy menu theo lớp trong tuần
+    const menus = await Menu.find({
+      classId,
+      date: { $gte: start, $lte: end },
+    });
+
+    // Tạo dữ liệu ghép từng ngày
+    const weeklyDiary = dayList.map((date) => {
+      const dateStr = date.toISOString().slice(0, 10);
+
+      const attendance = attendanceRecords.find(
+        (a) => new Date(a.date).toISOString().slice(0, 10) === dateStr
+      );
+
+      const menu = menus.find(
+        (m) => new Date(m.date).toISOString().slice(0, 10) === dateStr
+      );
+
+      return {
+        date: dateStr,
+        status: attendance?.status || null,
+        note: attendance?.note || "",
+        comment: attendance?.comment || "",
+        eat: attendance?.eat || "",
+        sleep: attendance?.sleep || "",
+        image: attendance?.imageUrl || "",
+        menu: menu
+          ? {
+              breakfast: menu.breakfast || null,
+              lunch: menu.lunch || null,
+            }
+          : null,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      weeklyDiary,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// lịch sử điểm danh theo học sinh 
+export const getAttendanceHistoryByChild = async (req, res, next) => {
+  const { childId } = req.query;
+  try {
+    if (!childId || !mongoose.Types.ObjectId.isValid(childId)) {
+      return res.status(400).json({ success: false, message: "childId không hợp lệ!" });
+    }
+
+    const records = await Attendance.find({ childId }).sort({ date: -1 });
+
+    res.json({ success: true, records });
+  } catch (err) {
+    next(err);
+  }
+};
+

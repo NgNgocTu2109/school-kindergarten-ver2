@@ -75,15 +75,28 @@ export const getAllMenus = async (req, res, next) => {
 
 
 export const getMenuHistory = async (req, res, next) => {
-  const { classId } = req.query;
+  const { classId, start, end } = req.query;
 
   try {
     if (!classId) return handleValidationError("Thiếu classId", 400);
 
-    const menus = await Menu.find({ classId }).sort({ date: -1 });
+    const query = { classId };
+
+    // Nếu có start & end → lọc theo khoảng ngày
+    if (start && end) {
+      const startDate = new Date(start);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(end);
+      endDate.setHours(23, 59, 59, 999);
+
+      query.date = { $gte: startDate, $lte: endDate };
+    }
+
+    const menus = await Menu.find(query).sort({ date: 1 }); // sort tăng dần để hiển thị theo tuần
 
     res.status(200).json({ success: true, menus });
   } catch (err) {
     next(err);
   }
 };
+

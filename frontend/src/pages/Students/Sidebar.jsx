@@ -1,12 +1,11 @@
 import React from "react";
 import styled from "styled-components";
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   BsFileText, BsJournalText, BsCartCheck, BsChatDots,
   BsCalendarEvent, BsBook, BsCashStack, BsGear, BsBoxArrowRight
 } from "react-icons/bs";
 
-// Styled-components
 const SidebarContainer = styled.div`
   position: fixed;
   top: 0;
@@ -18,6 +17,7 @@ const SidebarContainer = styled.div`
   overflow-y: auto;
   padding-top: 60px;
   z-index: 100;
+  font-family: 'Inter', sans-serif;
 
   @media (max-width: 768px) {
     width: 80px;
@@ -27,9 +27,10 @@ const SidebarContainer = styled.div`
 
 const SidebarHeader = styled.div`
   padding: 20px;
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 22px;
+  font-weight: 600;
   text-align: center;
+  color: #ecf0f1;
 
   @media (max-width: 768px) {
     font-size: 14px;
@@ -37,18 +38,25 @@ const SidebarHeader = styled.div`
   }
 `;
 
-const NavItem = styled(Link)`
+const NavItem = styled(NavLink)`
   display: flex;
   align-items: center;
-  padding: 12px 20px;
-  font-size: 18px;
+  padding: 10px 18px;
+  font-size: 15px;
   color: white;
   text-decoration: none;
-  border-bottom: 1px solid #34495e;
-  transition: background-color 0.3s ease;
+  border-radius: 6px;
+  margin: 4px 8px;
+  transition: background-color 0.25s ease;
+
+  &.active {
+    background-color: #4b8ba9;
+    font-weight: 600;
+    color: white;
+  }
 
   &:hover {
-    background-color: #34495e;
+    background-color: #3b5369;
   }
 
   @media (max-width: 768px) {
@@ -60,15 +68,16 @@ const NavItem = styled(Link)`
 const LogoutItem = styled.div`
   display: flex;
   align-items: center;
-  padding: 12px 20px;
-  font-size: 18px;
+  padding: 10px 18px;
+  font-size: 15px;
   color: white;
   cursor: pointer;
-  border-bottom: 1px solid #34495e;
-  transition: background-color 0.3s ease;
+  border-radius: 6px;
+  margin: 4px 8px;
+  transition: background-color 0.25s ease;
 
   &:hover {
-    background-color: #34495e;
+    background-color: #3b5369;
   }
 
   @media (max-width: 768px) {
@@ -78,12 +87,9 @@ const LogoutItem = styled.div`
 `;
 
 const SidebarIcon = styled.div`
-  margin-right: 10px;
   font-size: 18px;
-
-  @media (max-width: 768px) {
-    margin-right: 0;
-  }
+  display: flex;
+  align-items: center;
 `;
 
 const SidebarText = styled.span`
@@ -124,10 +130,6 @@ const Sidebar = () => {
         <NavItem to="/student/events">
           <SidebarIcon><BsCalendarEvent /></SidebarIcon>
           <SidebarText>Sự kiện & Hoạt động</SidebarText>
-        </NavItem>
-        <NavItem to="/student/library">
-          <SidebarIcon><BsBook /></SidebarIcon>
-          <SidebarText>Thư viện</SidebarText>
         </NavItem>
         <NavItem to="/student/communication">
           <SidebarIcon><BsChatDots /></SidebarIcon>
