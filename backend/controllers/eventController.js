@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 // Tạo sự kiện
 export const createEvent = async (req, res) => {
   try {
-    const { title, description, date, type, image, classIds, fee, detailLink } = req.body;
+    const { title, description, date, type, image, classIds, fee, pickupTime, pickupLocation } = req.body;
 
     if (!title || !description || !date || !type || !image || !classIds || !classIds.length) {
       return res.status(400).json({ success: false, message: "Thiếu thông tin bắt buộc" });
@@ -22,9 +22,10 @@ export const createEvent = async (req, res) => {
       image,
       classIds: parsedClassIds,
       fee: fee || 0,
-      detailLink: detailLink || "",
+      pickupTime: pickupTime || "",
+      pickupLocation: pickupLocation || "",
       participants: [],
-      eventHistory: [] // Mặc định tạo trường này
+      eventHistory: []
     });
 
     res.status(201).json({ success: true, event: newEvent });
@@ -79,13 +80,14 @@ export const deleteEvent = async (req, res) => {
 export const updateEvent = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, fee, detailLink } = req.body;
+    const { title, description, fee, pickupTime, pickupLocation } = req.body;
 
     const updateData = {
       title,
       description,
       fee,
-      detailLink,
+      pickupTime,
+      pickupLocation,
     };
 
     if (req.file?.filename) {
@@ -116,13 +118,11 @@ export const registerEventParticipant = async (req, res) => {
 
     const childObjId = new mongoose.Types.ObjectId(childId);
 
-    // Nếu đã có trong participants thì không thêm lại
     const isAlreadyParticipant = event.participants.some(id => id.equals(childObjId));
     if (!isAlreadyParticipant) {
       event.participants.push(childObjId);
     }
 
-    // Nếu đã ghi log "registered" thì không thêm lại
     const alreadyLogged = event.eventHistory.some(h =>
       h.childId.equals(childObjId) && h.status === "registered"
     );
@@ -178,12 +178,10 @@ export const toggleEventRegistration = async (req, res) => {
     const index = event.participants.findIndex(id => id.equals(childObjId));
 
     if (index !== -1) {
-      // Nếu đã tồn tại => huỷ tham gia
       event.participants.splice(index, 1);
       await event.save();
       return res.status(200).json({ success: true, action: "cancelled", message: "Đã huỷ tham gia sự kiện" });
     } else {
-      // Chưa có => đăng ký
       event.participants.push(childObjId);
       await event.save();
       return res.status(200).json({ success: true, action: "registered", message: "Đã tham gia sự kiện" });
@@ -199,9 +197,9 @@ export const getStudentRegisteredEvents = async (req, res) => {
     const { childId } = req.query;
     if (!childId) return res.status(400).json({ success: false, message: "Thiếu childId" });
 
-    const childObjId = new mongoose.Types.ObjectId(childId);  // Sửa ở đây
+    const childObjId = new mongoose.Types.ObjectId(childId);
     const events = await Event.find({ participants: childObjId }).sort({ date: -1 });
-    const eventIds = events.map(e => e._id.toString());  // lấy mảng id string
+    const eventIds = events.map(e => e._id.toString());
 
     res.status(200).json({ success: true, events, eventIds });
   } catch (err) {
@@ -219,7 +217,6 @@ export const getEventHistoryByChild = async (req, res, next) => {
       eventHistory: { $elemMatch: { childId, status: 'registered' } }
     }).sort({ date: -1 });
 
-    // Có thể format lại nếu cần
     res.json({ success: true, events });
   } catch (err) {
     next(err);

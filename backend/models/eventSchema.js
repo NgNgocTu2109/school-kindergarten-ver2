@@ -32,13 +32,21 @@ const eventSchema = new mongoose.Schema({
     default: 0, // 0 đồng nghĩa là miễn phí
   },
   detailLink: {
-    type: String, // link chi tiết mô tả (có thể là link Google Drive, YouTube, v.v.)
+    type: String,
+    default: "",
+  },
+  pickupTime: {
+    type: String,
+    default: "",
+  },
+  pickupLocation: {
+    type: String,
     default: "",
   },
   participants: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Child", // học sinh tham gia sự kiện
+      ref: "Child",
     },
   ],
   createdAt: {
@@ -46,23 +54,22 @@ const eventSchema = new mongoose.Schema({
     default: Date.now,
   },
   eventHistory: [
-  {
-    childId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Child",
+    {
+      childId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Child",
+      },
+      status: {
+        type: String,
+        enum: ["registered", "cancelled"],
+      },
+      source: {
+        type: String,
+        enum: ["student", "admin"],
+      },
+      date: Date,
     },
-    status: {
-      type: String,
-      enum: ["registered", "cancelled"],
-    },
-    source: {
-      type: String,
-      enum: ["student", "admin"],
-    },
-    date: Date,
-  }
-]
-
+  ],
 });
 
 export const Event = mongoose.model("Event", eventSchema);

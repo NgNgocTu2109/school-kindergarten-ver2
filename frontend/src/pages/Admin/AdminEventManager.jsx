@@ -1,4 +1,3 @@
-// AdminEventManager.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "./Sidebar";
@@ -24,7 +23,8 @@ const AdminEventManager = () => {
   const [date, setDate] = useState("");
   const [type, setType] = useState("sukien");
   const [fee, setFee] = useState("");
-  const [detailLink, setDetailLink] = useState("");
+  const [pickupTime, setPickupTime] = useState("");
+  const [pickupLocation, setPickupLocation] = useState("");
   const [image, setImage] = useState(null);
   const [uploadedImage, setUploadedImage] = useState("");
   const [classIds, setClassIds] = useState([]);
@@ -75,7 +75,8 @@ const AdminEventManager = () => {
       formData.append("date", date);
       formData.append("type", type);
       formData.append("fee", fee);
-      formData.append("detailLink", detailLink);
+      formData.append("pickupTime", pickupTime);
+      formData.append("pickupLocation", pickupLocation);
       formData.append("image", uploadedImage.split("/uploads/")[1]);
       classIds.forEach(id => formData.append("classIds", id));
 
@@ -86,7 +87,8 @@ const AdminEventManager = () => {
       setDate("");
       setType("sukien");
       setFee("");
-      setDetailLink("");
+      setPickupTime("");
+      setPickupLocation("");
       setImage(null);
       setUploadedImage("");
       setClassIds([]);
@@ -125,8 +127,10 @@ const AdminEventManager = () => {
           <Input placeholder="Tên sự kiện" value={title} onChange={(e) => setTitle(e.target.value)} required />
           <Textarea placeholder="Mô tả" value={description} onChange={(e) => setDescription(e.target.value)} />
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-          <Input type="number" placeholder="Phí tham gia (0 = miễn phí)" value={fee} onChange={(e) => setFee(e.target.value)} />
-          <Input type="text" placeholder="Link mô tả chi tiết (tuỳ chọn)" value={detailLink} onChange={(e) => setDetailLink(e.target.value)} />
+          <Input type="number" placeholder="Phí tham gia" value={fee} onChange={(e) => setFee(e.target.value)} />
+
+          <Input type="text" placeholder="Thời gian lên xe" value={pickupTime} onChange={(e) => setPickupTime(e.target.value)} />
+          <Input type="text" placeholder="Địa điểm đón" value={pickupLocation} onChange={(e) => setPickupLocation(e.target.value)} />
 
           <Select value={type} onChange={(e) => setType(e.target.value)}>
             <option value="sukien">Sự kiện</option>
@@ -162,7 +166,8 @@ const AdminEventManager = () => {
                 <p>📘 Áp dụng cho: {ev.classIds?.map(cls => cls.grade).join(", ")}</p>
                 <p>{ev.description}</p>
                 {ev.fee > 0 && <p><strong>Phí tham gia:</strong> {ev.fee} đ</p>}
-                {ev.detailLink && <p><a href={ev.detailLink} target="_blank" rel="noopener noreferrer">🔗 Chi tiết</a></p>}
+                {ev.pickupTime && <p>🕗 Giờ lên xe: {ev.pickupTime}</p>}
+                {ev.pickupLocation && <p>📍 Địa điểm đón: {ev.pickupLocation}</p>}
                 <small>{new Date(ev.date).toLocaleDateString()} – {ev.type}</small>
                 <Button onClick={() => handleViewParticipants(ev._id)}>
                   {openEventId === ev._id ? "Ẩn danh sách" : "Xem học sinh tham gia"}
